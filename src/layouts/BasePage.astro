@@ -1,0 +1,14 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import "@fontsource-variable/roboto-mono";
+import "@fontsource-variable/manrope";
+---
+
+<!doctype html>
+<html data-theme="night" lang="en" class="min-h-full h-100 subpixel-antialiased">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+    <slot/>
+</html>

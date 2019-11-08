@@ -1,0 +1,86 @@
+---
+import BasePage from "../layouts/BasePage.astro";
+import { links, projects } from "../consts";
+import { Icon } from "astro-icon/components";
+import "@fontsource-variable/roboto-mono";
+import "@fontsource-variable/manrope";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+
+import headshot from "../images/strauss.webp"
+---
+<BasePage>
+	<body>
+		<Header isFixed/>
+		<div class="lg:px-36 md:px-20 px-4 md:pt-4">
+			<!-- Hero -->
+			<div class="sm:mt-20 text-2xl overflow-hidden flex lg:flex-row-reverse flex-col">
+				<div class="lg:basis-3/5 mx-6">
+					<h1 class="mb-2 font-sans xl:text-6xl md:text-4xl text-2xl font-bold">
+						Sam Baumohl
+					</h1>
+					<p class="md:pl-1 mb-16 md:text-xl text-lg font-sans font-medium">
+						Saint Louis, Missouri born and raised, I study <span class="text-primary">Computer Sciences</span> at the <span class="text-secondary">University of Wisconsin-Madison</span>. I'm passionate about Software Development, Machine Learning, and
+						Technology Policy.
+					</p>
+					<div class="flex flex-col md:flex-row justify-around sm:gap-10 mx-auto text-3xl mb-16 z-0">
+						{
+							links.map((val) => (
+								<a
+									class="transition duration-300 transform hover:scale-110 xs:p-2 p-1 sm:px-4"
+									target="_blank"
+									rel="noopener noreferrer"
+									aria-label={val.label}
+									href={val.link}
+								>
+									<div class="flex flex-row gap-2 place-items-center">
+									<Icon name={val.icon} />
+									{val.label}
+									</div>
+								</a>
+							))
+						}
+					</div>
+				</div>
+				<img src={headshot.src} alt="Portrait" class="object-cover w-full h-full max-md:my-15 aspect-square md:w-1/4 w-1/2 mx-auto rounded-[1.75rem]">
+			</div>
+
+		<!-- Projects -->
+		<div class="lg:mt-20 mt-8">
+			<h1 class="xl:text-8xl text-5xl text-center font-bold">My Projects</h1>
+			<div class="flex lg:flex-row flex-col xl:gap-24 gap-4 sm:py-24 py-6">
+			<!-- rel="noopener noreferrer" -->
+				{
+					projects.map((val) => (
+						<div class="grow flex-1 basis-0 p-4">
+							<h2 class="text-secondary text-4xl mb-3">{val.title}</h2>
+							<p class="text-left mb-3">{val.description}</p>
+							<div class="flex flex-row">
+								<form action={val.github} method="get" target="_blank" > 
+									<button type="submit" class="hover:underline mr-2" >
+										<Icon name="github" class="w-5 mr-1 float-left" />Code
+									</button>
+								</form>
+								{val.link && (
+									<>{" | "}</>
+									<a
+										id="myLink"
+										href={val.link}
+										target="_blank"
+										class="fancy-hover px-1 ml-2"
+									>
+										Visit
+									</a>
+								)}
+							</div>
+						</div>
+					))
+				}
+			</div>
+		</div>
+	</div>
+
+		<!-- Footer -->
+		<Footer havePhotoCredits={true}/>
+	</body>
+</BasePage>
