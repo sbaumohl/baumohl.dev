@@ -1,50 +1,30 @@
 {
   "name": "sambaumohl-com",
   "version": "1.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e",
-    "build:prod": "node ./node_modules/@angular/cli/bin/ng build --prod"
-  },
   "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && next export",
+    "start": "next start"
+  },
   "dependencies": {
-    "@angular/animations": "~11.1.2",
-    "@angular/common": "~11.1.2",
-    "@angular/compiler": "~11.1.2",
-    "@angular/core": "~11.1.2",
-    "@angular/forms": "~11.1.2",
-    "@angular/platform-browser": "~11.1.2",
-    "@angular/platform-browser-dynamic": "~11.1.2",
-    "@angular/router": "~11.1.2",
-    "@fortawesome/angular-fontawesome": "^0.8.2",
-    "@fortawesome/fontawesome-svg-core": "^1.2.35",
-    "@fortawesome/free-brands-svg-icons": "^5.15.3",
-    "@fortawesome/free-solid-svg-icons": "^5.15.3",
-    "bootstrap": "^4.6.0",
-    "rxjs": "^6.6.7",
-    "tslib": "^2.2.0",
-    "zone.js": "~0.10.2"
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-brands-svg-icons": "^5.15.4",
+    "@fortawesome/free-regular-svg-icons": "^5.15.4",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.15",
+    "date-fns": "^2.11.1",
+    "gray-matter": "^4.0.2",
+    "next": "^11.0.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "remark": "^12.0.0",
+    "remark-html": "^12.0.0",
+    "sass": "^1.42.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.1101.4",
-    "@angular/cli": "~11.1.4",
-    "@angular/compiler-cli": "~11.1.2",
-    "@types/jasmine": "^3.6.10",
-    "@types/jasminewd2": "~2.0.3",
-    "@types/node": "^12.20.11",
-    "codelyzer": "^6.0.1",
-    "jasmine-core": "~3.6.0",
-    "jasmine-spec-reporter": "~5.0.0",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage-istanbul-reporter": "~3.0.2",
-    "karma-jasmine": "~4.0.0",
-    "karma-jasmine-html-reporter": "^1.5.0",
-    "ts-node": "~8.3.0",
-    "tslint": "~6.1.0",
-    "typescript": "^4.0.7"
+    "@types/node": "^16.10.3",
+    "@types/react": "^17.0.27",
+    "typescript": "^4.4.3"
   }
 }

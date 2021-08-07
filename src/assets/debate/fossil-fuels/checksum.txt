@@ -1,2 +1,0 @@
-sha256
-31d299e782edf993c5d24eb82ebcc287b4bbd65e3e63be24ad974ac7a43f63ed CoalBad.docx
