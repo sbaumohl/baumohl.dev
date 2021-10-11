@@ -72,11 +72,11 @@ for (const project of projectList) {
 }
 export default class FrontPage extends React.Component {
   componentDidMount() {
-    document.getElementById("__next").classList.add("canvas");
+    document.getElementById("__next")!.classList.add("canvas");
   }
 
   componentWillUnmount() {
-    document.getElementById("__next").classList.remove("canvas");
+    document.getElementById("__next")!.classList.remove("canvas");
   }
 
   render() {
