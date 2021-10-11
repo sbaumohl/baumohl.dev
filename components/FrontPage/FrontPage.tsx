@@ -4,9 +4,9 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { linksList, projectList, skillList } from "../../lib/resume";
-import styles from "./Title.module.scss";
+import styles from "./FrontPage.module.scss";
 
-const resumeLinks = [];
+const resumeLinks: React.ReactNode[] = [];
 for (const link of linksList) {
   resumeLinks.push(
     <div>
@@ -24,7 +24,7 @@ for (const link of linksList) {
   );
 }
 
-const resumeSkills = [];
+const resumeSkills: React.ReactNode[] = [];
 for (const skill of skillList) {
   resumeSkills.push(
     <div className={styles.skill}>
@@ -43,7 +43,7 @@ for (const skill of skillList) {
   );
 }
 
-const resumeProjects = [];
+const resumeProjects: React.ReactNode[] = [];
 for (const project of projectList) {
   resumeProjects.push(
     <div>
@@ -70,7 +70,7 @@ for (const project of projectList) {
     </div>
   );
 }
-export default class TitleHeader extends React.Component {
+export default class FrontPage extends React.Component {
   componentDidMount() {
     document.getElementById("__next").classList.add("canvas");
   }

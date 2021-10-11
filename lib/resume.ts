@@ -95,7 +95,7 @@ export const linksList: Contact[] = [
     link: "https://github.com/MeMeBigProgrammer",
     tooltip: "MeMeBigProgrammer",
   },
-  { icon: faKey, link: "assets/pgp/key.txt", tooltip: "PGP Public Key" },
+  { icon: faKey, link: "/pgp/key.txt", tooltip: "PGP Public Key" },
   {
     icon: faEnvelope,
     link: "mailto:mail@sambaumohl.me",
