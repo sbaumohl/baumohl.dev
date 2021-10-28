@@ -5,13 +5,6 @@ class RootDocument extends Document {
     return (
       <Html lang="en-us">
         <Head>
-          <meta charSet="utf-8" />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, shrink-to-fit=no"
-          />
-          <meta name="description" content="Sam Baumohl" />
-          <title>SamBaumohl.com</title>
           <base href="/" />
           <link
             rel="apple-touch-icon"

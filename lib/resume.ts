@@ -85,15 +85,15 @@ export const projectList: Project[] = [
   {
     title: "BYO Style-Based GAN",
     description: "A simple implementation of StyleGAN using PyTorch.",
-    sourceUrl: "https://github.com/MeMeBigProgrammer/BYO-GAN",
+    sourceUrl: "https://github.com/sbaumohl/BYO-GAN",
   },
 ];
 
 export const linksList: Contact[] = [
   {
     icon: faGithub,
-    link: "https://github.com/MeMeBigProgrammer",
-    tooltip: "MeMeBigProgrammer",
+    link: "https://github.com/sbaumohl",
+    tooltip: "sbaumohl",
   },
   { icon: faKey, link: "/pgp/key.txt", tooltip: "PGP Public Key" },
   {
