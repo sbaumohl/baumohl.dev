@@ -4,7 +4,7 @@ import Head from 'next/head'
 export default function App({ Component, pageProps }) {
   return <>
     <Head>
-      <title>Samuel Baumohl | Software Developer and Student</title>
+      <title>Samuel Baumohl | Software Developer</title>
       <meta charSet="utf-8" />
       <meta
         name="viewport"
