@@ -84,8 +84,8 @@ export default class FrontPage extends React.Component {
       <>
         <div className={styles.nameHeader}>
           <div className={styles.headerChild}>
-            <h1>SamBaumohl.com</h1>
-            <h4>Sam Baumohl is a full-stack developer from Missouri.</h4>
+            <h1>Samuel Baumohl</h1>
+            <h4>Hi there! I'm a software developer from Saint Louis, Missouri.</h4>
             <div aria-label="Site Links" className={styles.siteLinksGroup}>
               {resumeLinks}
             </div>

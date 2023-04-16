@@ -11,6 +11,7 @@ import {
   faLinkedin,
   faInstagram,
   IconDefinition,
+  faTwitter
 } from "@fortawesome/free-brands-svg-icons";
 import { faKey, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
@@ -72,7 +73,7 @@ export const skillList: Skill[] = [
     icon: "devicon-cplusplus-plain",
     name: "C++",
     isDevicon: true,
-  },
+  }
 ];
 
 export const projectList: Project[] = [
@@ -110,5 +111,11 @@ export const linksList: Contact[] = [
     icon: faInstagram,
     link: "https://www.instagram.com/sam_b2327",
     tooltip: "@sam_b2327",
-  },
+  }
+  // ,
+  // {
+  //   icon: faTwitter,
+  //   link: "",
+  //   tooltip: "@s_baumohl"
+  // }
 ];
