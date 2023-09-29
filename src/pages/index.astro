@@ -39,7 +39,7 @@ const skills = new Map([
 	["Other Tools", ["AWS", "Docker", "Git", "Linux", "PostgreSQL", "SQL"]],
 ]);
 const introUnderlineStyle =
-	"underline underline-offset-8 decoration-4 decoration-accent";
+	"underline underline-offset-8 md:decoration-4 decoration-accent";
 
 const projects = [
 	{
@@ -69,13 +69,13 @@ const projects = [
 	<body class="font-thin font-serif">
 		<div class="p-5 text-text">
 			<div class="h-100 border rounded-md border-black">
-				<div class="py-24 px-20">
-					<h1 class="text-9xl font-semibold text-black">Samuel Baumohl</h1>
+				<div class="sm:py-24 py-6 sm:px-20 px-4">
+					<h1 class="sm:text-9xl text-7xl font-semibold text-black">Samuel Baumohl</h1>
 					<p class="text-lg mt-4">
 						Saint Louis, Missouri born and raised, I study <span
 							class={introUnderlineStyle}>Computer Sciences</span
 						> and <span class={introUnderlineStyle}>Legal Studies</span> at the <span
-							class="underline underline-offset-8 decoration-4 decoration-accent"
+						class={introUnderlineStyle}
 							>University of Wisconsin-Madison</span
 						>. I'm passionate about Software Development, Machine Learning, and
 						Technology Policy.
@@ -101,7 +101,7 @@ const projects = [
 
 		<div class="my-5 text-center transparent">
 			<h1 class="text-7xl">My Skills</h1>
-			<div class="flex flex-row md:gap-40 gap-4 py-24 px-48 text-2xl">
+			<div class="flex md:flex-row flex-col md:gap-40 gap-4 sm:py-24 py-6 sm:px-20 px-4 text-2xl">
 				{
 					Array.from(skills.entries()).map(([key, value]) => (
 						<div class="grow">
@@ -119,7 +119,7 @@ const projects = [
 
 		<div class="p-5">
 			<h1 class="text-7xl text-center">My Projects</h1>
-			<div class="flex flex-row md:gap-40 gap-4 py-24 px-48">
+			<div class="flex md:flex-row flex-col lg:gap-40 gap-4 sm:py-24 py-6 sm:px-48 px-4">
 				{
 					projects.map((val) => (
 						<div class="grow border border-black rounded-md flex-1 basis-0 p-4">

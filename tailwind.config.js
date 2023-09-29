@@ -10,9 +10,6 @@ module.exports = {
 		extend: {
 			fontFamily: {
 				serif: ['Playfair Display Variable', "InterVariable", "Inter", ...defaultTheme.fontFamily.serif],
-			  },
-			spacing: {
-				132: "35.25rem",
 			},
 			colors: {
 				text: "#251e0e",
