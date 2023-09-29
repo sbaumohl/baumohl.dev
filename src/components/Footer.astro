@@ -1,0 +1,14 @@
+---
+import { NAME } from "../consts";
+const today = new Date();
+---
+
+<footer>
+	&copy; {today.getFullYear()} {" " + NAME}. All rights reserved.
+</footer>
+<style>
+	footer {
+		padding: 2em 1em 2em 1em;
+		text-align: center;
+	}
+</style>
