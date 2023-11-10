@@ -9,21 +9,23 @@ module.exports = {
 	theme: {
 		extend: {
 			fontFamily: {
-				serif: ['Playfair Display Variable', "InterVariable", "Inter", ...defaultTheme.fontFamily.serif],
-			},
-			colors: {
-				text: "#251e0e",
-				background: "#f8f5ed",
-				primary: "#133695",
-				secondary: "#f6e5b7",
-				accent: "#1a48c7",
-			},
+				sans: [
+					"Manrope Variable",
+					...defaultTheme.fontFamily.sans
+				],
+				mono: [
+					'Roboto Mono Variable',
+					...defaultTheme.fontFamily.sans
+				]
+			}
 		},
-
 	},
 	plugins: [
 		require("@tailwindcss/aspect-ratio"),
 		require("@tailwindcss/typography"),
+		require('daisyui')
 	],
-	darkMode: "class",
+	daisyui: {
+		themes: ["light", "night", "luxury"],
+	}
 };

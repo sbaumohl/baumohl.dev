@@ -1,0 +1,23 @@
+---
+import Header from "../components/Header.astro";
+import { PGP_KEY } from "../consts";
+
+import "@fontsource-variable/roboto-mono";
+import "@fontsource-variable/manrope";
+import Footer from "../components/Footer.astro";
+import BasePage from "../layouts/BasePage.astro"
+---
+
+<BasePage>
+	<body class="font-thin">
+		<Header />
+		
+		<div class="md:w-3/4 p-2 mx-auto">
+			<p class="mt-10 ">Below is my PGP Public Encryption Key. if you want to reach me and want to add an extra layer of security to your message, use this!</p>
+			<div class="prose-code select-all text-info">
+				<pre><code set:text={PGP_KEY} class="md:text-lg text-xs"/></pre>
+			</div>
+		</div>
+		<Footer />
+	</body>
+</BasePage>

@@ -5,6 +5,7 @@ const blog = defineCollection({
 	schema: z.object({
 		title: z.string(),
 		description: z.string(),
+		author: z.string().default("Sam Baumohl"),
 		// Transform string to Date object
 		pubDate: z.coerce.date(),
 		updatedDate: z.coerce.date().optional(),

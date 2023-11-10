@@ -1,129 +1,52 @@
 ---
-import BaseHead from "../components/BaseHead.astro";
-import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import BasePage from "../layouts/BasePage.astro";
+import { links, projects } from "../consts";
 import { Icon } from "astro-icon";
-import "@fontsource-variable/playfair-display";
-import Footer from "../components/Footer.astro"
-
-const links = [
-	{
-		label: "Github",
-		link: "https://github.com/sbaumohl",
-		icon: "github",
-	},
-	{
-		label: "Email",
-		icon: "mail",
-		link: "mailto:mail@sambaumohl.me",
-	},
-	// {
-	// 	label: "Instagram",
-	// 	link: "https://www.instagram.com/sam_b2327/",
-	// 	icon: "instagram",
-	// },
-	{
-		label: "LinkedIn",
-		icon: "linkedin",
-		link: "https://www.linkedin.com/in/sam-baumohl09/",
-	},
-	// {
-	// 	label: "PGP",
-	// 	icon: "key",
-	// 	link: "",
-	// },
-];
-
-const skills = new Map([
-	["Frameworks", ["Angular", "React.js", "Astro", "NodeJS"]],
-	["Languages", ["Java", "Python", "Javascript", "Typescript", "HTML", "CSS"]],
-	["Other Tools", ["AWS", "Docker", "Git", "Linux", "PostgreSQL", "SQL"]],
-]);
-const introUnderlineStyle =
-	"underline underline-offset-8 md:decoration-4 decoration-accent";
-
-const projects = [
-	{
-		title: "MyMICDS.net",
-		description:
-			"An all-in-one platform for MICDS student life built with Angular, Express, MongoDB, and NodeJS.",
-		github: "https://github.com/MyMICDS/",
-		link: "https://mymicds.net/",
-	},
-	{
-		title: "BYO Style-Based GAN",
-		description:
-			"A blackbox implementation of NVIDIA's StyleGAN (Style-Based Generative Adversarial Neural Network) using PyTorch and Python.",
-		github: "https://github.com/sbaumohl/BYO-GAN",
-	},
-];
+import "@fontsource-variable/roboto-mono";
+import "@fontsource-variable/manrope";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
 ---
-
-<!doctype html>
-<html
-	lang="en"
-	class="bg-gradient-to-tl from-primary from-1% to-background to-75%"
->
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body class="font-thin font-serif">
-		<div class="p-5 text-text">
-			<div class="h-100 border rounded-md border-black">
-				<div class="sm:py-24 py-6 sm:px-20 px-4">
-					<h1 class="sm:text-9xl text-7xl font-semibold text-black">Samuel Baumohl</h1>
-					<p class="text-lg mt-4">
-						Saint Louis, Missouri born and raised, I study <span
-							class={introUnderlineStyle}>Computer Sciences</span
-						> and <span class={introUnderlineStyle}>Legal Studies</span> at the <span
-						class={introUnderlineStyle}
-							>University of Wisconsin-Madison</span
-						>. I'm passionate about Software Development, Machine Learning, and
+<BasePage>
+	<body>
+		<Header isFixed/>
+		<div class="lg:px-36 md:px-20 px-4 md:pt-4">
+			<!-- Hero -->
+			<div class="sm:mt-20 text-2xl overflow-hidden flex lg:flex-row-reverse flex-col">
+				<div class="mx-6">
+					<h1 class="mb-2 font-sans select-none xl:text-8xl md:text-6xl text-5xl font-bold">
+						Sam Baumohl
+					</h1>
+					<p class="md:pl-2 mb-16 md:text-xl text-lg font-sans font-medium">
+						Saint Louis, Missouri born and raised, I study <span class="text-primary">Computer Sciences</span> and <span class="text-success">Legal Studies</span> at the <span class="text-accent">University of Wisconsin-Madison</span>. I'm passionate about Software Development, Machine Learning, and
 						Technology Policy.
 					</p>
+					<div class="flex justify-around sm:gap-10 mx-auto text-3xl mb-16">
+						{
+							links.map((val) => (
+								<a
+									class="fancy-hover xs:p-2 p-1 sm:px-4"
+									target="_blank"
+									rel="noopener noreferrer"
+									href={val.link}
+								>
+									{val.label}
+								</a>
+							))
+						}
+					</div>
 				</div>
-				<div class="flex">
-					{
-						links.map((val) => (
-							<a
-								class="first:ml-20 border-l-0 first:border-l p-2 border-t border-x border-black hover:underline"
-								target="_blank"
-								rel="noopener noreferrer"
-								href={val.link}
-							>
-								<Icon name={val.icon} class="w-5 mr-1 float-left" />
-								{val.label}
-							</a>
-						))
-					}
-				</div>
+				<img src="strauss2.jpg" alt="Portrait" class="shrink-0 max-md:my-10 aspect-square md:w-1/3 w-1/2 mx-auto rounded-lg">
 			</div>
-		</div>
 
-		<div class="my-5 text-center transparent">
-			<h1 class="text-7xl">My Skills</h1>
-			<div class="flex md:flex-row flex-col md:gap-40 gap-4 sm:py-24 py-6 sm:px-20 px-4 text-2xl">
-				{
-					Array.from(skills.entries()).map(([key, value]) => (
-						<div class="grow">
-							<h2 class="text-4xl mb-3">{key}</h2>
-							<ul>
-								{value.map((d) => (
-									<li>{d}</li>
-								))}
-							</ul>
-						</div>
-					))
-				}
-			</div>
-		</div>
-
-		<div class="p-5">
-			<h1 class="text-7xl text-center">My Projects</h1>
-			<div class="flex md:flex-row flex-col lg:gap-40 gap-4 sm:py-24 py-6 sm:px-48 px-4">
+		<!-- Projects -->
+		<div class="lg:mt-48 mt-8">
+			<h1 class="xl:text-8xl text-7xl text-center">My Projects</h1>
+			<div class="flex lg:flex-row flex-col xl:gap-24 gap-4 sm:py-24 py-6 ">
 				{
 					projects.map((val) => (
-						<div class="grow border border-black rounded-md flex-1 basis-0 p-4">
-							<h2 class="text-4xl mb-3">{val.title}</h2>
+						<div class="grow flex-1 basis-0 p-4">
+							<h2 class="text-primary text-4xl mb-3">{val.title}</h2>
 							<p class="text-left mb-3">{val.description}</p>
 							<div class="flex flex-row">
 								<a
@@ -141,7 +64,7 @@ const projects = [
 										id="myLink"
 										href={val.link}
 										target="_blank"
-										class="underline ml-2"
+										class="fancy-hover px-1 ml-2"
 									>
 										Visit
 									</a>
@@ -152,11 +75,9 @@ const projects = [
 				}
 			</div>
 		</div>
-		<Footer/>
+	</div>
+
+		<!-- Footer -->
+		<Footer havePhotoCredits={true}/>
 	</body>
-</html>
-<style>
-	.transparent {
-		background-color: rgba(170, 170, 170, 0.22);
-	}
-</style>
+</BasePage>
