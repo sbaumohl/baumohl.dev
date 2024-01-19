@@ -6,6 +6,8 @@ import "@fontsource-variable/roboto-mono";
 import "@fontsource-variable/manrope";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
+
+import headshot from "../images/strauss.webp"
 ---
 <BasePage>
 	<body>
@@ -36,7 +38,7 @@ import Header from "../components/Header.astro";
 						}
 					</div>
 				</div>
-				<img src="strauss2.jpg" alt="Portrait" class="object-cover w-full h-full max-md:my-15 aspect-square md:w-1/4 w-1/2 mx-auto rounded-[1.75rem]">
+				<img src={headshot.src} alt="Portrait" class="object-cover w-full h-full max-md:my-15 aspect-square md:w-1/4 w-1/2 mx-auto rounded-[1.75rem]">
 			</div>
 
 		<!-- Projects -->

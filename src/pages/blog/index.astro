@@ -10,6 +10,9 @@ import BasePage from "../../layouts/BasePage.astro";
 const posts = (await getCollection("blog")).sort(
 	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
 );
+
+const images = import.meta.glob("../../images/**");
+const heroImages = await Promise.all(posts.map(async post => await images[`../../images/${post.data.heroImage}`]()))
 ---
 
 <BasePage>
@@ -18,13 +21,13 @@ const posts = (await getCollection("blog")).sort(
 		<main class="md:mt-20 mb-48">
 			<section class="w-3/5 mx-auto flex flex-col gap-10">
 				{
-					posts.map((post) => (
+					posts.map((post, index) => (
 						<a href={`/blog/${post.slug}/`}>
 							<div class="flex flex-col md:flex-row gap-6">
 								<img
 									width={270}
 									height={135}
-									src={post.data.heroImage}
+									src={heroImages[index].default.src}
 									alt=""
 								/>
 								<div class="flex flex-col">

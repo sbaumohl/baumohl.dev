@@ -10,6 +10,10 @@ type Props = CollectionEntry<"blog">["data"];
 
 const { title, description, pubDate, updatedDate, heroImage, author } =
 	Astro.props;
+
+const images = import.meta.glob("../images/**");
+const heroImageImport = await images[`../images/${heroImage}`]()
+
 ---
 
 <BasePage>
@@ -20,7 +24,7 @@ const { title, description, pubDate, updatedDate, heroImage, author } =
 				<div class="hero-image">
 					{
 						heroImage && (
-							<img src={heroImage} alt="" class="mb-16 mx-auto aspect-square" />
+							<img src={heroImageImport.default.src} alt="" class="mb-16 mx-auto aspect-square" />
 						)
 					}
 				</div>
