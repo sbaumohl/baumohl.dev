@@ -9,23 +9,17 @@ module.exports = {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: [
-					"Manrope Variable",
-					...defaultTheme.fontFamily.sans
-				],
-				mono: [
-					'Roboto Mono Variable',
-					...defaultTheme.fontFamily.sans
-				]
-			}
+				sans: ["Manrope Variable", ...defaultTheme.fontFamily.sans],
+				mono: ["Roboto Mono Variable", ...defaultTheme.fontFamily.sans],
+			},
 		},
 	},
 	plugins: [
 		require("@tailwindcss/aspect-ratio"),
 		require("@tailwindcss/typography"),
-		require('daisyui')
+		require("daisyui"),
 	],
 	daisyui: {
-		themes: ["light", "night", "luxury"],
-	}
+		themes: ["night"],
+	},
 };
