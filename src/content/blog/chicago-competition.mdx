@@ -1,0 +1,43 @@
+---
+title: 'My Experience at The UChicago Trading Competition.'
+description: 'Or: How To Lose The UChicago Trading Competition.'
+pubDate: 'May 27 2024'
+heroImage: 'stonks.png'
+---
+
+Some friends and I competed in the 2024 UChicago Trading competition and represented UW-Madison (Go Badgers!). We did better than we thought we would, had a great time, made many mistakes, and learned a lot.
+
+## The Competition Format
+The competition was structured into two distinct cases: a Market-Making case and a Portfolio Optimization Case. Among the 36 participating teams, we achieved 12th place in Market-Making and 3rd place in Portfolio Optimization. My primary focus was on the Market-Making case (Case 1). Additionally, DRW hosted a Poker Tournament the night before the competition, where I placed 6th.
+
+### Case 1: Makin’ Markets; Makin’ Money
+
+Case 1 required designing a trading bot in Python that connected to a trading platform and would place orders and respond to market conditions in five-minute rounds. Instead of running a set number, the organizers ran these five-minute rounds until the designated time for Case 1 ended. The organizers ran rounds until the scheduled time for Case 1 ended instead of aiming for a certain number. 
+
+Our score for each round was our performance compared to other teams, as determined by our bot's profit and loss (PnL). The actual score per round was `(rank - 1)^2`. Later rounds had tighter market conditions and were given greater weight than earlier rounds. A lower score was better.
+
+A few members of the trading competition staff developed the trading platform, which included the exchange server and the Python packages for building our bot. They revealed little about how the platform worked because they hope to use it for future competitions. They did reveal that the exchange was built using Rust (likely using [Tonic](https://github.com/hyperium/tonic)), and the bots and servers communicated using [gRPC](https://grpc.io/).
+
+The trading itself consisted of securities and two ETFs (Exchange Traded Funds), each composed of a mix of those securities and a risk-free asset. The price book of each security fluctuated in a [Brownian motion](https://en.wikipedia.org/wiki/Brownian_motion) during each five-minute round. The exchange would cash out any positions held at the end of the round using the settled security price. The risk-free asset is always settled for the same price. The organizers sampled "historical" settlement prices for all non-ETF securities, excluding the risk-free asset. You could also exchange X ETF shares for whole shares of the underlying securities for a small fee.
+
+Our team's most successful strategy was ETF arbitrage. Our teammate Ishan nailed the code for ETF arbitrage. I spent many sleepless nights trying and failing to make our bot profitable via other opportunities like pennying, trading in the bid-ask spread, and implementing [Avellaneda-Stoikov](https://math.nyu.edu/~avellane/HighFrequencyTrading.pdf).
+
+During the competition, an organizer talked to our team and explained that pennying was intentionally made obsolete via the designed market conditions. He indicated that ETF arbitrage was a much better strategy and more representative of actual Market-Making. 
+
+In later rounds, our ETF arbitrage code struggled, and we fell back to simply trading the risk-free asset. Because we always knew the settlement price, we took on the maximum position possible if market conditions moved even a single dollar outside that price. We held it until the round ended or the price reverted. This fallback strategy worked decently well.
+
+Once all rounds were complete, the organizers pulled back the curtain and explained how we could have navigated this case differently. Afterward, we talked to a few other teams and learned their strategies. Here are my takeaways:
+
+- We should have used the historical settlement prices, employing Bayesian probabilities, and updated them as the round progressed. Using Bayes would have given our bot a better indication of the fair value of each security.
+
+- There were also smart bots and dumb bots trading. If we conducted a closer examination of the price books, we would have noticed some smart bots making huge orders slightly above or below the mid-price. These smart bots would have told us which direction the mid-price was about to move to. Large orders imply confidence.
+
+- For ETF arbitrage, the underlying securities are never mispriced; the ETF is. 
+
+- Many securities were highly correlated, and we could have exploited this to predict fair value via pairs trading better.
+
+- Because performance was based on rank, not raw PnL, some teams randomly traded securities until they reached a certain profit threshold and then did nothing for the rest of the round. I call this the Moneyball strategy.
+
+- Market Making does work without pennying.
+
+- Market orders are dangerous; Limit orders are better. Because a market order could be filled at any price (in the competition), you could get baited into a wildly unprofitable trade by another team. A team pulled millions in profit in one round by baiting another team's bot with absurd order prices.

@@ -16,23 +16,27 @@ import headshot from "../images/strauss.webp"
 			<!-- Hero -->
 			<div class="sm:mt-20 text-2xl overflow-hidden flex lg:flex-row-reverse flex-col">
 				<div class="lg:basis-3/5 mx-6">
-					<h1 class="mb-2 font-sans xl:text-7xl md:text-5xl text-4xl font-bold">
+					<h1 class="mb-2 font-sans xl:text-6xl md:text-4xl text-2xl font-bold">
 						Sam Baumohl
 					</h1>
 					<p class="md:pl-1 mb-16 md:text-xl text-lg font-sans font-medium">
 						Saint Louis, Missouri born and raised, I study <span class="text-primary">Computer Sciences</span> at the <span class="text-secondary">University of Wisconsin-Madison</span>. I'm passionate about Software Development, Machine Learning, and
 						Technology Policy.
 					</p>
-					<div class="flex justify-around sm:gap-10 mx-auto text-3xl mb-16">
+					<div class="flex flex-col md:flex-row justify-around sm:gap-10 mx-auto text-3xl mb-16">
 						{
 							links.map((val) => (
 								<a
-									class="fancy-hover xs:p-2 p-1 sm:px-4"
+									class="transition duration-300 transform hover:scale-110 xs:p-2 p-1 sm:px-4"
 									target="_blank"
 									rel="noopener noreferrer"
+									aria-label={val.label}
 									href={val.link}
 								>
+									<div class="flex flex-row gap-2 place-items-center">
+									<Icon name={val.icon} />
 									{val.label}
+									</div>
 								</a>
 							))
 						}
@@ -43,7 +47,7 @@ import headshot from "../images/strauss.webp"
 
 		<!-- Projects -->
 		<div class="lg:mt-20 mt-8">
-			<h1 class="xl:text-8xl text-7xl text-center font-bold">My Projects</h1>
+			<h1 class="xl:text-8xl text-5xl text-center font-bold">My Projects</h1>
 			<div class="flex lg:flex-row flex-col xl:gap-24 gap-4 sm:py-24 py-6">
 			<!-- rel="noopener noreferrer" -->
 				{

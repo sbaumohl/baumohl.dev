@@ -54,6 +54,12 @@ export const links = [
 		icon: "linkedin",
 		link: "https://www.linkedin.com/in/sam-baumohl09/",
 	},
+	{
+		label: "Leetcode",
+		icon: "leetcode",
+		link: "https://leetcode.com/u/sbaumohl/"
+
+	}
 	// {
 	// 	label: "PGP",
 	// 	icon: "key",
