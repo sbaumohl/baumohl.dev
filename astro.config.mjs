@@ -9,5 +9,7 @@ import playformCompress from "@playform/compress";
 // https://astro.build/config
 export default defineConfig({
   site: "https://baumohl.dev",
-  integrations: [mdx(), sitemap(), tailwind(), icon(), playformCompress()]
+  integrations: [mdx({
+    optimize: true,
+  }), sitemap(), tailwind(), icon(), playformCompress()]
 });

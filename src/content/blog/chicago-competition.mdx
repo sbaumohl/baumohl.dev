@@ -10,7 +10,9 @@ Some friends and I competed in the 2024 UChicago Trading competition and represe
 ## The Competition Format
 The competition was structured into two distinct cases: a Market-Making case and a Portfolio Optimization Case. Among the 36 participating teams, we achieved 12th place in Market-Making and 3rd place in Portfolio Optimization. My primary focus was on the Market-Making case (Case 1). Additionally, DRW hosted a Poker Tournament the night before the competition, where I placed 6th.
 
-### Case 1: Makin’ Markets; Makin’ Money
+### Case 1: Makin' Markets; Makin' Money
+
+![UChicago Trading Competition case 1 Leaderboard Screenshot](/images/chicago_comp_leaderboard.png)
 
 Case 1 required designing a trading bot in Python that connected to a trading platform and would place orders and respond to market conditions in five-minute rounds. Instead of running a set number, the organizers ran these five-minute rounds until the designated time for Case 1 ended. The organizers ran rounds until the scheduled time for Case 1 ended instead of aiming for a certain number. 
 
@@ -22,7 +24,7 @@ The trading itself consisted of securities and two ETFs (Exchange Traded Funds),
 
 Our team's most successful strategy was ETF arbitrage. Our teammate Ishan nailed the code for ETF arbitrage. I spent many sleepless nights trying and failing to make our bot profitable via other opportunities like pennying, trading in the bid-ask spread, and implementing [Avellaneda-Stoikov](https://math.nyu.edu/~avellane/HighFrequencyTrading.pdf).
 
-During the competition, an organizer talked to our team and explained that pennying was intentionally made obsolete via the designed market conditions. He indicated that ETF arbitrage was a much better strategy and more representative of actual Market-Making. 
+During the competition, an organizer talked to our team and explained that pennying was intentionally made obsolete via the designed market conditions. He indicated that ETF arbitrage was a much better strategy and more representative of actual Market-Making.
 
 In later rounds, our ETF arbitrage code struggled, and we fell back to simply trading the risk-free asset. Because we always knew the settlement price, we took on the maximum position possible if market conditions moved even a single dollar outside that price. We held it until the round ended or the price reverted. This fallback strategy worked decently well.
 
@@ -32,7 +34,7 @@ Once all rounds were complete, the organizers pulled back the curtain and explai
 
 - There were also smart bots and dumb bots trading. If we conducted a closer examination of the price books, we would have noticed some smart bots making huge orders slightly above or below the mid-price. These smart bots would have told us which direction the mid-price was about to move to. Large orders imply confidence.
 
-- For ETF arbitrage, the underlying securities are never mispriced; the ETF is. 
+- For ETF arbitrage, the underlying securities are never mispriced; the ETF is.
 
 - Many securities were highly correlated, and we could have exploited this to predict fair value via pairs trading better.
 
