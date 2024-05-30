@@ -14,7 +14,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install Node Dependencies
         run: npm ci -f
@@ -31,4 +31,4 @@ jobs:
           REMOTE_HOST: ${{ secrets.HOST }}
           REMOTE_USER: ${{ secrets.USERNAME }}
           REMOTE_PORT: ${{ secrets.PORT }}
-          TARGET: /var/www/sambaumohl.com
+          TARGET: /var/www/baumohl.dev
