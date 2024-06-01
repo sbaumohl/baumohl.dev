@@ -42,7 +42,7 @@ export const links = [
 	{
 		label: "Email",
 		icon: "mail",
-		link: "mailto:mail@sambaumohl.me",
+		link: "mailto:sam@baumohl.dev",
 	},
 	// {
 	// 	label: "Instagram",
