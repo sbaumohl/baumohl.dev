@@ -1,15 +1,9 @@
 // Place any global data in this file.
 // You can import this data from anywhere in your site by using the `import` keyword.
 
-export const SITE_TITLE = 'Sam Baumohl';
-export const SITE_DESCRIPTION = 'Sam Baumohl\'s personal website';
+export const SITE_TITLE = 'baumohl.dev';
+export const SITE_DESCRIPTION = 'Sam Baumohl';
 export const NAME = 'Samuel Baumohl'
-
-export const skills = new Map([
-	["Frameworks", ["Angular", "React.js", "Astro", "NodeJS"]],
-	["Languages", ["Java", "Python", "Javascript", "Typescript", "HTML", "CSS"]],
-	["Other Tools", ["AWS", "Docker", "Git", "Linux", "PostgreSQL", "SQL"]],
-]);
 
 export const projects = [
 	{
@@ -44,11 +38,6 @@ export const links = [
 		icon: "mail",
 		link: "mailto:sam@baumohl.dev",
 	},
-	// {
-	// 	label: "Instagram",
-	// 	link: "https://www.instagram.com/sam_b2327/",
-	// 	icon: "instagram",
-	// },
 	{
 		label: "LinkedIn",
 		icon: "linkedin",
@@ -58,13 +47,7 @@ export const links = [
 		label: "Leetcode",
 		icon: "leetcode",
 		link: "https://leetcode.com/u/sbaumohl/"
-
 	}
-	// {
-	// 	label: "PGP",
-	// 	icon: "key",
-	// 	link: "",
-	// },
 ];
 
 export const PGP_KEY = `

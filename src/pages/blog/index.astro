@@ -1,58 +1,24 @@
 ---
-import Header from "../../components/Header.astro";
-import Footer from "../../components/Footer.astro";
 import { getCollection } from "astro:content";
 import FormattedDate from "../../components/FormattedDate.astro";
-import "@fontsource-variable/roboto-mono";
-import "@fontsource-variable/manrope";
 import BasePage from "../../layouts/BasePage.astro";
-import { getImage } from "astro:assets"
 
 const posts = (await getCollection("blog")).sort(
 	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
 );
 
-const images = import.meta.glob("../../images/**");
-const heroImages = await Promise.all(posts.map(async post => {
-	const imageSrc: any = await images[`../../images/${post.data.heroImage}`]();
-	return await getImage({
-		src: imageSrc.default,
-		format: "webp",
-		width: 720,
-		height: 720,
-	});
-}))
+// const images = import.meta.glob("../../images/**");
+// const heroImages = await Promise.all(posts.map(async post => {
+// 	const imageSrc: any = await images[`../../images/${post.data.heroImage}`]();
+// 	return await getImage({
+// 		src: imageSrc.default,
+// 		format: "webp",
+// 		width: 720,
+// 		height: 720,
+// 	});
+// }))
 
 ---
-
-<BasePage>
-	<body>
-		<Header />
-		<main class="md:mt-20 mb-48">
-			<section class="w-3/5 mx-auto flex flex-col gap-10">
-				{
-					posts.reverse().map((post, index) => (
-						<a href={`/blog/${post.slug}/`}>
-							<div class="flex flex-col md:flex-row gap-6">
-								<img
-									width={270}
-									height={135}
-									src={heroImages[index].src}
-									alt=""
-								/>
-								<div class="flex flex-col">
-									<h4 class="font-semibold Md:text-5xl text-xl">{post.data.title}</h4>
-									<p class="mt-1">{post.data.description}</p>
-									<p class="mt-4 text-primary">
-										Published <FormattedDate date={post.data.pubDate} />
-									</p>
-								</div>
-							</div>
-						</a>
-					))
-				}
-			</section>
-		</main>
-		<Footer />
-	</body>
-</BasePage>
+<>
+How!?
+</>

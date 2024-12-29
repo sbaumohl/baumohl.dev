@@ -1,14 +1,24 @@
 ---
 import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
-import "@fontsource-variable/roboto-mono";
-import "@fontsource-variable/manrope";
+import Footer from "../components/Footer.astro";
+import "@fontsource-variable/source-serif-4";
 ---
 
 <!doctype html>
-<html data-theme="night" lang="en" class="min-h-full h-100 subpixel-antialiased">
+<html lang="en" class="font-serif min-h-full h-100">
+
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 	</head>
-    <slot/>
+	<body class="">
+		<!-- <Header/> -->
+		<main>
+			<slot />
+		</main>
+	</body>
+	
+	<!-- Footer -->
+	<Footer />
 </html>
