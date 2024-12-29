@@ -11,5 +11,8 @@ export default defineConfig({
   site: "https://baumohl.dev",
   integrations: [mdx({
     optimize: true,
-  }), sitemap(), tailwind(), icon(), playformCompress()]
+  }), sitemap(), tailwind(), icon(), playformCompress()],
+  redirects: {
+    '/blog': '/',
+  }
 });

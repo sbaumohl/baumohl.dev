@@ -1,86 +1,104 @@
 ---
 import BasePage from "../layouts/BasePage.astro";
-import { links, projects } from "../consts";
 import { Icon } from "astro-icon/components";
-import "@fontsource-variable/roboto-mono";
-import "@fontsource-variable/manrope";
-import Footer from "../components/Footer.astro";
-import Header from "../components/Header.astro";
+import CustomLink from "../components/CustomLink.astro";
+import { getCollection } from "astro:content";
+import FormattedDate from "../components/FormattedDate.astro";
 
-import headshot from "../images/strauss.webp"
+const posts = (await getCollection("blog")).sort(
+	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
+);
+
+const subheaderStyles = "text-2xl sm:text-4xl mb-4 sm:mt-12 mt-6";
+const buttonStyles =
+	"btn btn-link btn-lg normal-case font-normal no-underline";
 ---
-<BasePage>
-	<body>
-		<Header isFixed/>
-		<div class="lg:px-36 md:px-20 px-4 md:pt-4">
-			<!-- Hero -->
-			<div class="sm:mt-20 text-2xl overflow-hidden flex lg:flex-row-reverse flex-col">
-				<div class="lg:basis-3/5 mx-6">
-					<h1 class="mb-2 font-sans xl:text-6xl md:text-4xl text-2xl font-bold">
-						Sam Baumohl
-					</h1>
-					<p class="md:pl-1 mb-16 md:text-xl text-lg font-sans font-medium">
-						Saint Louis, Missouri born and raised, I study <span class="text-primary">Computer Sciences</span> at the <span class="text-secondary">University of Wisconsin-Madison</span>. I'm passionate about Software Development, Machine Learning, and
-						Technology Policy.
-					</p>
-					<div class="flex flex-col md:flex-row justify-around sm:gap-10 mx-auto text-3xl mb-16 z-0">
-						{
-							links.map((val) => (
-								<a
-									class="transition duration-300 transform hover:scale-110 xs:p-2 p-1 sm:px-4"
-									target="_blank"
-									rel="noopener noreferrer"
-									aria-label={val.label}
-									href={val.link}
-								>
-									<div class="flex flex-row gap-2 place-items-center">
-									<Icon name={val.icon} />
-									{val.label}
-									</div>
-								</a>
-							))
-						}
-					</div>
-				</div>
-				<img src={headshot.src} alt="Portrait" class="object-cover w-full h-full max-md:my-15 aspect-square md:w-1/4 w-1/2 mx-auto rounded-[1.75rem]">
-			</div>
 
-		<!-- Projects -->
-		<div class="lg:mt-20 mt-8">
-			<h1 class="xl:text-8xl text-5xl text-center font-bold">My Projects</h1>
-			<div class="flex lg:flex-row flex-col xl:gap-24 gap-4 sm:py-24 py-6">
-			<!-- rel="noopener noreferrer" -->
-				{
-					projects.map((val) => (
-						<div class="grow flex-1 basis-0 p-4">
-							<h2 class="text-secondary text-4xl mb-3">{val.title}</h2>
-							<p class="text-left mb-3">{val.description}</p>
-							<div class="flex flex-row">
-								<form action={val.github} method="get" target="_blank" > 
-									<button type="submit" class="hover:underline mr-2" >
-										<Icon name="github" class="w-5 mr-1 float-left" />Code
-									</button>
-								</form>
-								{val.link && (
-									<>{" | "}</>
-									<a
-										id="myLink"
-										href={val.link}
-										target="_blank"
-										class="fancy-hover px-1 ml-2"
-									>
-										Visit
-									</a>
-								)}
+<BasePage>
+	<div class="sm:mt-20 block mx-auto max-w-[700px] text-wrap sm:text-lg">
+		<h1 class="text-4xl sm:text-5xl my-4 font-semibold">Sam Baumohl</h1>
+		<p class="mb-1">
+			I am a student at the University of Wisconsin-Madison studying
+			Computer Sciences and Mathematics. I'm interested in software
+			development, machine learning/AI, and technology policy. I like to
+			read, solve problems, and work on various side projects, some of
+			which I'll post here. Right now, I'm:
+		</p>
+		<ul class="ml-1 list-disc list-inside">
+			<li>
+				trying to survive the <a
+					class="underline"
+					href="/blog/uw-madison-courses/">CS major</a>
+			</li>
+			<li>
+				a Coordinator at Madison's&nbsp;<CustomLink
+					href="https://www.upl.cs.wisc.edu/"
+					>Undergraduate Project Lab</CustomLink
+				>
+				<li>
+					a passionate member of the&nbsp;<CustomLink
+						href="https://waisi.org/"
+						>Wisconsin AI Safety Initiative (WAISI)</CustomLink
+					>
+				</li>
+			</li>
+		</ul>
+		<h2 class={subheaderStyles}>Socials</h2>
+		<div class="flex flex-row items-center justify-center gap-x-2">
+			<form action="https://www.linkedin.com/in/sam-baumohl09/">
+				<button class={buttonStyles}>
+					<Icon name="linkedin" />
+					LinkedIn
+				</button>
+			</form>
+			<form action="https://github.com/sbaumohl/">
+				<button class={buttonStyles}>
+					<Icon name="github" />
+					Github
+				</button>
+			</form>
+			<div>
+				<button class={buttonStyles} onclick="email_modal.showModal()">
+					<Icon name="mail" />
+					Email
+				</button>
+			</div>
+					</div>
+		<h2 class={subheaderStyles}>Blog Posts</h2>
+		<section class="flex flex-col gap-8 mb-16 p-1">
+			{
+				posts.reverse().map((post, _) => (
+					<a href={`/blog/${post.slug}/`}>
+						<div class="flex flex-col md:flex-row gap-6 p-3 border border-solid border-darker-500 hover:border-darker">
+							<div class="flex flex-col">
+								<h4 class="font-semibold text-xl">
+									{post.data.title}
+								</h4>
+								<p class="mt-1">{post.data.description}</p>
+								<p class="mt-4">
+									Published{" "}
+									<FormattedDate date={post.data.pubDate} />
+								</p>
 							</div>
 						</div>
-					))
-				}
-			</div>
-		</div>
+					</a>
+				))
+			}
+		</section>
 	</div>
-
-		<!-- Footer -->
-		<Footer havePhotoCredits={true}/>
-	</body>
 </BasePage>
+<dialog id="email_modal" class="modal">
+	<div class="modal-box text-lg">
+		<form method="dialog">
+			<button
+				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+				>✕</button
+			>
+		</form>
+		<h3 class="text-lg font-bold">Email Address</h3>
+		<p class="py-4">sam (at) baumohl (dot) dev</p>
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>
