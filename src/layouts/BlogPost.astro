@@ -10,6 +10,7 @@ const { title, description, pubDate, updatedDate, author } = Astro.props;
 ---
 
 <BasePage>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
 	<div class="sm:mt-20 mx-auto max-w-[700px] text-wrap mb-8">
 		<a
 			href="/"
@@ -25,7 +26,7 @@ const { title, description, pubDate, updatedDate, author } = Astro.props;
 				{description}
 			</h2>
 			<hr class="mt-1 mb-2 border-black" />
-			<div class="sm:text-lg mb-6 flex flex-row gap-x-2">
+			<div class="text-xs sm:text-lg mb-6 flex flex-row gap-x-2">
 				<span>Published on<FormattedDate date={pubDate} /></span
 				>&middot;
 				{
@@ -42,7 +43,7 @@ const { title, description, pubDate, updatedDate, author } = Astro.props;
 				<span>{author}</span>
 			</div>
 			<article
-				class="prose prose-neutral prose-sm sm:prose-base max-w-none text-wrap"
+				class="prose text-black prose-neutral prose-sm sm:prose-base max-w-none text-wrap"
 			>
 				<slot />
 			</article>
