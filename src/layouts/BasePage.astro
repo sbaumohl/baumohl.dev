@@ -1,19 +1,24 @@
 ---
 import BaseHead from "../components/BaseHead.astro";
-import Header from "../components/Header.astro";
-import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 import Footer from "../components/Footer.astro";
 import "@fontsource-variable/source-serif-4";
+
+interface BasePageProps {
+	title?: String,
+	description?: String,
+	ogtype?: String,
+}
+
+const {title, description, ogtype }: BasePageProps = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en" class="font-serif min-h-full h-100">
 
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title={title} description={description} ogtype={ogtype} />
 	</head>
 	<body class="">
-		<!-- <Header/> -->
 		<main>
 			<slot />
 		</main>
