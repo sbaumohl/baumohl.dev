@@ -31,7 +31,7 @@ const buttonStyles =
 					href="/blog/uw-madison-courses/">CS major</a>
 			</li>
 			<li>
-				an incoming software engineering intern at Netflix for the summer of 2025
+				a software engineering intern at Netflix for the summer of 2025
 			</li>
 			<li>
 				a Coordinator at Madison's&nbsp;<CustomLink
@@ -43,6 +43,9 @@ const buttonStyles =
 				a passionate member of the&nbsp;<CustomLink
 					href="https://waisi.org/"
 					>Wisconsin AI Safety Initiative (WAISI)</CustomLink>
+			</li>
+			<li>
+				working on my own Wayland compositor using Rust
 			</li>
 		</ul>
 		<h2 class={subheaderStyles}>Socials</h2>
@@ -80,6 +83,7 @@ const buttonStyles =
 								<p class="mt-4">
 									Published{" "}
 									<FormattedDate date={post.data.pubDate} />
+							{post.data.updatedDate && (<>&nbsp;|&nbsp;Updated <FormattedDate date={post.data.updatedDate!}/></>)}
 								</p>
 							</div>
 						</div>
@@ -99,6 +103,7 @@ const buttonStyles =
 		</form>
 		<h3 class="text-lg font-bold">Email Address</h3>
 		<p class="py-4">sam (at) baumohl (dot) dev</p>
+		<p class="text-xs">You can email me using <a class="underline" href="/pgp">PGP</a></p>
 	</div>
 	<form method="dialog" class="modal-backdrop">
 		<button>close</button>

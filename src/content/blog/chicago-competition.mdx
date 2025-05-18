@@ -15,7 +15,7 @@ The competition was structured into two distinct cases: a Market-Making case and
 
 Case 1 required designing a trading bot in Python that connected to a trading platform and would place orders and respond to market conditions in five-minute rounds. Instead of running a set number, the organizers ran these five-minute rounds until the designated time for Case 1 ended. The organizers ran rounds until the scheduled time for Case 1 ended instead of aiming for a certain number. 
 
-Our score for each round was our performance compared to other teams, as determined by our bot's profit and loss (PnL). The actual score per round was `(rank - 1)^2`. Later rounds had tighter market conditions and were given greater weight than earlier rounds. A lower score was better.
+Our score for each round was our performance compared to other teams, as determined by our bot's profit and loss (PnL). The actual score per round was $(\text{rank} - 1)^2$. Later rounds had tighter market conditions and were given greater weight than earlier rounds. A lower score was better.
 
 A few members of the trading competition staff developed the trading platform, which included the exchange server and the Python packages for building our bot. They revealed little about how the platform worked because they hope to use it for future competitions. They did reveal that the exchange was built using Rust (likely using [Tonic](https://github.com/hyperium/tonic)), and the bots and servers communicated using [gRPC](https://grpc.io/).
 
