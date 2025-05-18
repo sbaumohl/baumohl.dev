@@ -24,6 +24,7 @@ export default defineConfig({
   ],
   redirects: {
     "/blog": "/",
+    "/pgp": "/blog/pgp-key/",
   },
   markdown: {
     remarkPlugins: [remarkMath],

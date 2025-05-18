@@ -12,7 +12,6 @@ module.exports = {
       fontFamily: {
         serif: ["'Source Serif 4 Variable'", ...defaultTheme.fontFamily.serif],
         sans: [...defaultTheme.fontFamily.sans],
-        mono: [...defaultTheme.fontFamily.sans],
       },
       colors: {
         bright: {
