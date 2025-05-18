@@ -1,54 +1,9 @@
 // Place any global data in this file.
 // You can import this data from anywhere in your site by using the `import` keyword.
 
-export const SITE_TITLE = 'baumohl.dev';
-export const SITE_DESCRIPTION = 'Sam Baumohl';
-export const NAME = 'Samuel Baumohl'
-
-export const projects = [
-	{
-		title: "MyMICDS.net",
-		description:
-			"An all-in-one platform for MICDS student life built with Angular, Express, MongoDB, and NodeJS.",
-		github: "https://github.com/MyMICDS/",
-		link: "https://mymicds.net/",
-	},
-	{
-		title: "BYO Style-Based GAN",
-		description:
-			"A blackbox implementation of NVIDIA's StyleGAN (Style-Based Generative Adversarial Neural Network) using PyTorch and Python.",
-		github: "https://github.com/sbaumohl/BYO-GAN",
-	},
-	{
-		title: "This Website™",
-		description:
-			"Built with Astro, Typescript, tailwindcss, and daisyUI.",
-		github: "https://github.com/sbaumohl/PersonalWebsite-Bootstrap"
-	},
-];
-
-export const links = [
-	{
-		label: "Github",
-		link: "https://github.com/sbaumohl",
-		icon: "github",
-	},
-	{
-		label: "Email",
-		icon: "mail",
-		link: "mailto:sam@baumohl.dev",
-	},
-	{
-		label: "LinkedIn",
-		icon: "linkedin",
-		link: "https://www.linkedin.com/in/sam-baumohl09/",
-	},
-	{
-		label: "Leetcode",
-		icon: "leetcode",
-		link: "https://leetcode.com/u/sbaumohl/"
-	}
-];
+export const SITE_TITLE = "baumohl dot dev";
+export const SITE_DESCRIPTION = "Hi. My name is Sam Baumohl";
+export const NAME = "Samuel Baumohl";
 
 export const PGP_KEY = `
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -106,4 +61,5 @@ QCDG8uP4xRr1tvCtCcUXLXfGUoSEOzPLFZdJxVLPg8xGxcwyuu/VO6KUQFL6
 yytcXpQ/IfNfA6m8KJToc5mh
 =mNzM
 -----END PGP PUBLIC KEY BLOCK-----
-`
+`;
+

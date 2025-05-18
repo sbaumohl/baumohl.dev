@@ -5,12 +5,11 @@ import BasePage from "./BasePage.astro";
 import { Icon } from "astro-icon/components";
 
 type Props = CollectionEntry<"blog">["data"];
-
 const { title, description, pubDate, updatedDate, author } = Astro.props;
 ---
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
-<BasePage>
+<BasePage title={title} description={description} ogtype="article">
 	<div class="sm:mt-20 mx-auto max-w-[700px] text-wrap mb-8">
     <a
     href="/"
