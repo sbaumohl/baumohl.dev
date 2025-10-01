@@ -1,6 +1,6 @@
 ---
 title: 'How I answered a stupid question about Football using a SAT-solver'
-description: 'Circles-of-suck and where to find them.'
+description: 'Circles of Suck and where to find them'
 pubDate: 'Oct 1 2025'
 ---
 
@@ -14,7 +14,7 @@ This interesting question sounds straightforward, but it is actually an NP-Compl
 Borrowing a definition from [Wolfram MathWorld](https://mathworld.wolfram.com/HamiltonianCycle.html):
 > A Hamiltonian cycle, also called a Hamiltonian circuit, Hamilton cycle, or Hamilton circuit, is a [graph cycle](https://mathworld.wolfram.com/GraphCycle.html) (i.e., closed loop) through a [graph](https://mathworld.wolfram.com/Graph.html) that visits each node exactly once (Skiena 1990, p. 196).
 
-Before trying to find a circle of suck programmatically, we can eliminate a few years through common sense. Because a Hamiltonian cycle requires a node to have an edge going in and going out, any regular season where a team wins or loses all its games cannot have a circle of suck. A few years have seen this happen. The 1972 Miami Dolphins had a perfect season, winning all regular season and postseason games. The 2007 Patriots also won every regular season game, but lost the super bowl. Meanwhile, the 2017 Browns and 2008 Lions have had a perfect losing season, to name a few. Thus, we expect these years to not admit a Hamiltonian cycle with every team and lack a circle of suck encompassing all teams. 
+Before trying to find a Circle of Suck programmatically, we can eliminate a few years through common sense. Because a Hamiltonian cycle requires a node to have an edge going in and going out, any regular season where a team wins or loses all its games cannot have a Circle of Suck. A few years have seen this happen. The 1972 Miami Dolphins had a perfect season, winning all regular season and postseason games. The 2007 Patriots also won every regular season game, but lost the super bowl. Meanwhile, the 2017 Browns and 2008 Lions have had a perfect losing season, to name a few. Thus, we expect these years to not admit a Hamiltonian cycle with every team and lack a Circle of Suck encompassing all teams. 
 
 I found a [Kaggle dataset](https://www.kaggle.com/datasets/tobycrabtree/nfl-scores-and-betting-data/data?select=spreadspoke_scores.csv) of NFL game results going back to 1966, wrote a quick Rust script implementing a DP solution for the Hamiltonian cycle detection problem, and hit a brick wall. 
 
@@ -33,7 +33,7 @@ At most, we have 32 teams, and we want to compute the existence of a Hamiltonian
 My solution was to use a SAT solver.  What's a SAT solver? It takes in giant boolean expressions in the form like "(A or B) and (B or C)"  and spits out states for all the variables which lead to the entire expression returning true. The nice thing is that many computationally intractable problems could be turned into giant boolean satisfiability problems. I landed on a python SAT solver called [`pysat`](https://pysathq.github.io/), and quickly wrote code to load all regular season scores, build a graph, and find a Hamiltonian cycle. I followed the reduction from [here](https://www.csie.ntu.edu.tw/~lyuu/complexity/2011/20111018.pdf). 
 
 ## Results
-To my surprise, nearly every year without a perfect losing or winning team admits a complete circle of suck, only 10 years from 1966 through 2023 fail to admit a complete circle of suck, and five of those are before 1975. Those ten years are: 
+To my surprise, nearly every year without a perfect losing or winning team admits a complete Circle of Suck, only 10 years from 1966 through 2023 fail to admit a complete Circle of suck, and five of those are before 1975. Those ten years are: 
 - 1966
 - 1967
 - 1968
@@ -45,7 +45,7 @@ To my surprise, nearly every year without a perfect losing or winning team admit
 - 2008 (Lions lost every game)
 - 2017 (Browns lost every game)
 
-I've listed every circle-of-suck below. I've done my best to double check the accuracy of everything, but if you notice an error, please let me know.
+I've listed every Sircle of Suck below. I've done my best to double check the accuracy of everything, but if you notice an error, please let me know.
 
 ## Postscript
 
@@ -354,19 +354,7 @@ fn cycle_solver(adj_matrix: Vec<Vec<bool>>, n: usize) -> bool {
         .any(|(idx, set)| set.contains(&((1 << n) - 1)) && adj_matrix[idx][0])
 }
 
-fn test_cycle_solver() {
-    for k in 29..30 {
-        let mut test_mat = vec![vec![false; k]; k];
-        for i in 1..=k {
-            test_mat[i - 1][i % k] = true;
-        }
-        assert!(cycle_solver(test_mat, k))
-    }
-}
-
 fn main() {
-    test_cycle_solver();
-    return;
     let csv_file = File::open("./src/spreadspoke_scores.csv").unwrap();
 
     let mut rdr = Reader::from_reader(csv_file);
@@ -413,7 +401,7 @@ fn main() {
             .map(|(idx, team)| (team.clone(), idx))
             .collect();
 
-        // get check if there was a completed circle of parity
+        // check if there was a completed circle of parity
 
         // construct adj matrix, where adj[i][j] is true if and only if team i beat team j
         let n = teams.len();

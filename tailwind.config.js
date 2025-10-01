@@ -1,5 +1,26 @@
 /* eslint-disable import/no-extraneous-dependencies, global-require */
+const { Default } = require("@playform/compress");
 const defaultTheme = require("tailwindcss/defaultTheme");
+
+// module.exports = {
+//   theme: {
+//     extend: {
+//       typography: {
+//         DEFAULT: {
+//           css: {
+//             color: "#333",
+//             a: {
+//               color: "#3182ce",
+//               "&:hover": {
+//                 color: "#2c5282",
+//               },
+//             },
+//           },
+//         },
+//       },
+//     },
+//   },
+// };
 
 module.exports = {
   darkMode: "class",
@@ -12,6 +33,18 @@ module.exports = {
       fontFamily: {
         serif: ["'Source Serif 4 Variable'", ...defaultTheme.fontFamily.serif],
         sans: [...defaultTheme.fontFamily.sans],
+        mono: [
+          "'Nimbus Mono PS'",
+          "'Courier New'",
+          ...defaultTheme.fontFamily.mono,
+        ],
+      },
+      typography: {
+        Default: {
+          css: {
+            color: "#333",
+          },
+        },
       },
       colors: {
         bright: {
