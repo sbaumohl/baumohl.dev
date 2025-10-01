@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies, global-require */
-const { Default } = require("@playform/compress");
 const defaultTheme = require("tailwindcss/defaultTheme");
 
 // module.exports = {
