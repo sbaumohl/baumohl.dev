@@ -1,0 +1,434 @@
+---
+title: 'How I answered a stupid question about Football using a SAT-solver'
+description: 'Circles-of-suck and where to find them.'
+pubDate: 'Oct 1 2025'
+---
+
+I was eating some godforsaken amalgamation of food I call dinner when one of my housemates came downstairs to our shared living room and said something that piqued my interest.
+
+“The Bills beat the Chiefs. The Circle of Suck has been completed,” he stated to the three of us eating and/or watching TV. After asking for some elaboration, he explained that it was the phenomenon in a sports league where if team A beats Team B, team B beats Team C, and then Team C beats Team A, where every team in the league has been included in this circle, then it is called a completed Circle of Suck :tm: because, well, everyone sucks. After thinking about what this implies, I wondered whether it was common for a Circle of Suck to be completed in a regular NFL season, and which seasons saw a completed circle.
+## The Problem
+
+This interesting question sounds straightforward, but it is actually an NP-Complete problem with no worst-case polynomial-time algorithm to solve it. In other words, it has an answer that is easy to check, but intense to derive. What's worse is that the number of NFL teams (max 32) is large enough that most exponential-time brute force algorithms break down. To solve it, we will transform our question into a graph problem. We'll make every NFL team a node in a graph, and every regular-season game an edge, where a connection from team $u$ to team $v$ indicates that team $u$ has beaten team $v$ at some point in the regular season. We'll exclude ties, cancelled games, and other edge cases. In a directed graph, it means that $(u, v) \in E$ translates to being able to travel from node $u$ to node $v$, but not from $v$ to $u$. Then, this problem is whether an arbitrary graph with $n$ nodes admits a Hamiltonian cycle of size $n$.  
+
+Borrowing a definition from [Wolfram MathWorld](https://mathworld.wolfram.com/HamiltonianCycle.html):
+> A Hamiltonian cycle, also called a Hamiltonian circuit, Hamilton cycle, or Hamilton circuit, is a [graph cycle](https://mathworld.wolfram.com/GraphCycle.html) (i.e., closed loop) through a [graph](https://mathworld.wolfram.com/Graph.html) that visits each node exactly once (Skiena 1990, p. 196).
+
+Before trying to find a circle of suck programmatically, we can eliminate a few years through common sense. Because a Hamiltonian cycle requires a node to have an edge going in and going out, any regular season where a team wins or loses all its games cannot have a circle of suck. A few years have seen this happen. The 1972 Miami Dolphins had a perfect season, winning all regular season and postseason games. The 2007 Patriots also won every regular season game, but lost the super bowl. Meanwhile, the 2017 Browns and 2008 Lions have had a perfect losing season, to name a few. Thus, we expect these years to not admit a Hamiltonian cycle with every team and lack a circle of suck encompassing all teams. 
+
+I found a [Kaggle dataset](https://www.kaggle.com/datasets/tobycrabtree/nfl-scores-and-betting-data/data?select=spreadspoke_scores.csv) of NFL game results going back to 1966, wrote a quick Rust script implementing a DP solution for the Hamiltonian cycle detection problem, and hit a brick wall. 
+
+---
+There's a reason NP-Complete problems are called intractable.  Even after performance measuring my code, implementing `unsafe`, using `AHash` to reduce the hashing time for my hashmaps, and running with compiler optimizations, my DP solution was _really_ slow. This is  expected because we have to check $2^{n}$ combinations, which gets really nasty when $n > 20$.
+
+- For a graph with 22 teams, it takes about 1.58 seconds
+- For 25, 10.98 seconds
+- For 27, 42.27 seconds
+- For 29, 160.61 seconds
+- For 32, that's projected to be 1,280 seconds or about 20 minutes
+
+At most, we have 32 teams, and we want to compute the existence of a Hamiltonian cycle in 57 seasons. At this rate the program would take about 19 hours to run. We also wouldn't know what the Hamiltonian cycle is, only that one exists.
+
+---
+My solution was to use a SAT solver.  What's a SAT solver? It takes in giant boolean expressions in the form like "(A or B) and (B or C)"  and spits out states for all the variables which lead to the entire expression returning true. The nice thing is that many computationally intractable problems could be turned into giant boolean satisfiability problems. I landed on a python SAT solver called [`pysat`](https://pysathq.github.io/), and quickly wrote code to load all regular season scores, build a graph, and find a Hamiltonian cycle. I followed the reduction from [here](https://www.csie.ntu.edu.tw/~lyuu/complexity/2011/20111018.pdf). 
+
+## Results
+To my surprise, nearly every year without a perfect losing or winning team admits a complete circle of suck, only 10 years from 1966 through 2023 fail to admit a complete circle of suck, and five of those are before 1975. Those ten years are: 
+- 1966
+- 1967
+- 1968
+- 1969
+- 1972 (Dolphins perfect season)
+- 1976
+- 1982 (Strike season w/ abbreviated schedule)
+- 2007 (Patriots perfect season)
+- 2008 (Lions lost every game)
+- 2017 (Browns lost every game)
+
+I've listed every circle-of-suck below. I've done my best to double check the accuracy of everything, but if you notice an error, please let me know.
+
+## Postscript
+
+This piece has been sitting in my drafts for a while. Writing, like any skill, requires regular practice, and I'm going to try to make it a more regular thing because I don't want my writing abilities to atrophy. We'll see how that goes. :)
+
+# Appendix
+
+### My Python Code w/ Sat-Solver
+```python
+from itertools import product
+
+import numpy as np
+import pandas as pd
+from pysat.formula import CNF
+from pysat.solvers import Solver
+
+
+# py-sat relies on natural number identifiers
+# but the reduction uses double-indexed variables
+# let n be the total number of vertices in the graph
+# n = 35, because we at most have 32 teams
+def idx(pos_idx, vertex_idx, n=35):
+    return vertex_idx * n + pos_idx + 1
+
+
+def invert(edges: set[tuple[int, int]], n: int, bidi=False):
+    inv = set()
+    for (u, v) in product(range(n), range(n)):
+        if u == v or (u,v) in edges or (bidi and (v, u) in edges):
+            continue
+        inv.add((u, v))
+    return inv
+
+def hamiltonian_sat(edges: set[tuple[int, int]], n: int, bidi=False) -> list[int] | None:
+    cnf = CNF()
+
+    # for each vertex it must appear in one position
+    for v in range(n):
+        cnf.append([idx(i, v) for i in range(n)])
+
+    # for each vertex, it must appear in only one position
+    for v, l in product(range(n), range(n)):
+        for r in range(l + 1, n):
+            cnf.append([-idx(l, v), -idx(r, v)])
+
+    # for each position, there must be one vertex
+    for pos in range(n):
+        cnf.append([idx(pos, v) for v in range(n)])
+
+    # no two vertices share the same position
+    for pos, u in product(range(n), range(n)):
+        for v in range(u + 1, n):
+            cnf.append([-idx(pos, u), -idx(pos, v)])
+
+    # consecutive vertices must be adjacent
+    inv = invert(edges, n, bidi=bidi)
+    for pos, edge in product(range(n), inv):
+        cnf.append([-idx(pos, edge[0]), -idx((pos + 1) % n, edge[1])])
+
+    with Solver(bootstrap_with=cnf) as solver:
+        has_solution = solver.solve()
+        if has_solution:
+            model = solver.get_model() 
+            cycle = [None] * n
+            for pos, v in product(range(n), range(n)):
+                if model[idx(pos, v) - 1] > 0:
+                    cycle[pos] = v
+
+            return cycle
+    return None
+
+def verify_hamiltonian_cycle(cycle: list[int], edges: set[tuple[int, int]]):
+    for s in range(len(cycle)):
+        i, j = cycle[s], cycle[(s + 1) % len(cycle)]
+        if (i, j) not in edges:
+            return False
+    return True
+
+
+if __name__ == "__main__":
+    # load score data
+    df = pd.read_csv('./spreadspoke_scores.csv')
+
+    # group by season, get all season years
+    season_grouped = df.groupby("schedule_season")
+    seasons = season_grouped.groups.keys()
+
+    no_circle = []
+
+    # We run our analysis per-season
+    for season in seasons:
+        # skip 2024         
+        if season == 2024 or season < 1970:
+            continue
+
+        scores = season_grouped.get_group(season) 
+
+        # get team names
+        teams = set([*scores["team_home"].unique(), *scores["team_away"].unique()])
+        n = len(teams)
+
+        # assign int to each team
+        team_map = {k: idx for idx, k in enumerate(teams)}
+        index_map = {idx: k for k, idx in team_map.items()}
+
+        # 1. is there a circle of parity this season?
+        edges = set()
+        # now, we define each graph with each team being a node, and if team a beats team b, 
+        # then there's an edge from node a to node b. Each game add ones edge
+        # we also filter out post-season games
+        for row in scores[scores["schedule_playoff"] == False].itertuples():
+            # skip ties
+            if row.score_away == row.score_home:
+                continue
+
+            away_idx = team_map[row.team_away]
+            home_idx = team_map[row.team_home]
+
+            if row.score_away > row.score_home:
+                edges.add((away_idx, home_idx))
+            else:
+                edges.add((home_idx, away_idx))
+                
+        cycle = hamiltonian_sat(edges, n)
+        if cycle:
+            circle = list(map(index_map.get, cycle))
+            verify = verify_hamiltonian_cycle(cycle, edges)
+            assert verify
+            print(f"### {season}")
+            print(" $\\rightarrow$ ".join(circle + [f"{circle[0]}..."]))
+        else:
+            no_circle.append(season)
+
+    print(no_circle)
+```
+
+
+# Every Circle of Suck (from 1970 to 2023)
+### 1970
+San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ New Orleans Saints $\rightarrow$ Detroit Lions $\rightarrow$ Oakland Raiders $\rightarrow$ Kansas City Chiefs $\rightarrow$ Baltimore Colts $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Buffalo Bills $\rightarrow$ Boston Patriots $\rightarrow$ Miami Dolphins $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ Los Angeles Rams $\rightarrow$ St. Louis Cardinals $\rightarrow$ Washington Redskins $\rightarrow$ Philadelphia Eagles $\rightarrow$ New York Giants $\rightarrow$ New York Jets $\rightarrow$ Minnesota Vikings $\rightarrow$ Dallas Cowboys $\rightarrow$ Cleveland Browns $\rightarrow$ Houston Oilers $\rightarrow$ Cincinnati Bengals $\rightarrow$ San Diego Chargers...
+### 1971
+Oakland Raiders $\rightarrow$ San Diego Chargers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Buffalo Bills $\rightarrow$ New England Patriots $\rightarrow$ Miami Dolphins $\rightarrow$ Los Angeles Rams $\rightarrow$ Chicago Bears $\rightarrow$ Minnesota Vikings $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ New Orleans Saints $\rightarrow$ Dallas Cowboys $\rightarrow$ Washington Redskins $\rightarrow$ St. Louis Cardinals $\rightarrow$ New York Jets $\rightarrow$ Cincinnati Bengals $\rightarrow$ Philadelphia Eagles $\rightarrow$ Detroit Lions $\rightarrow$ Houston Oilers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ New York Giants $\rightarrow$ Green Bay Packers $\rightarrow$ Denver Broncos $\rightarrow$ Cleveland Browns $\rightarrow$ Baltimore Colts $\rightarrow$ Oakland Raiders...
+### 1973
+Pittsburgh Steelers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Minnesota Vikings $\rightarrow$ New York Giants $\rightarrow$ Houston Oilers $\rightarrow$ Baltimore Colts $\rightarrow$ Detroit Lions $\rightarrow$ Atlanta Falcons $\rightarrow$ Los Angeles Rams $\rightarrow$ Dallas Cowboys $\rightarrow$ New Orleans Saints $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ New York Jets $\rightarrow$ New England Patriots $\rightarrow$ San Diego Chargers $\rightarrow$ Buffalo Bills $\rightarrow$ Philadelphia Eagles $\rightarrow$ St. Louis Cardinals $\rightarrow$ Washington Redskins $\rightarrow$ San Francisco 49ers $\rightarrow$ Denver Broncos $\rightarrow$ Kansas City Chiefs $\rightarrow$ Oakland Raiders $\rightarrow$ Miami Dolphins $\rightarrow$ Cleveland Browns $\rightarrow$ Pittsburgh Steelers...
+### 1974
+San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ Oakland Raiders $\rightarrow$ Cleveland Browns $\rightarrow$ Houston Oilers $\rightarrow$ Buffalo Bills $\rightarrow$ New England Patriots $\rightarrow$ Minnesota Vikings $\rightarrow$ Chicago Bears $\rightarrow$ Detroit Lions $\rightarrow$ Cincinnati Bengals $\rightarrow$ Pittsburgh Steelers $\rightarrow$ New Orleans Saints $\rightarrow$ St. Louis Cardinals $\rightarrow$ Philadelphia Eagles $\rightarrow$ New York Giants $\rightarrow$ Dallas Cowboys $\rightarrow$ Washington Redskins $\rightarrow$ Los Angeles Rams $\rightarrow$ San Francisco 49ers $\rightarrow$ Atlanta Falcons $\rightarrow$ Green Bay Packers $\rightarrow$ Baltimore Colts $\rightarrow$ New York Jets $\rightarrow$ Miami Dolphins $\rightarrow$ Kansas City Chiefs $\rightarrow$ San Diego Chargers...
+### 1975
+Oakland Raiders $\rightarrow$ San Diego Chargers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Denver Broncos $\rightarrow$ Philadelphia Eagles $\rightarrow$ Washington Redskins $\rightarrow$ St. Louis Cardinals $\rightarrow$ New York Jets $\rightarrow$ New England Patriots $\rightarrow$ Baltimore Colts $\rightarrow$ Miami Dolphins $\rightarrow$ Chicago Bears $\rightarrow$ New Orleans Saints $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ Los Angeles Rams $\rightarrow$ Detroit Lions $\rightarrow$ Minnesota Vikings $\rightarrow$ Green Bay Packers $\rightarrow$ Dallas Cowboys $\rightarrow$ New York Giants $\rightarrow$ Buffalo Bills $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Cleveland Browns $\rightarrow$ Cincinnati Bengals $\rightarrow$ Houston Oilers $\rightarrow$ Oakland Raiders...
+### 1977
+Cleveland Browns $\rightarrow$ Houston Oilers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Dallas Cowboys $\rightarrow$ Denver Broncos $\rightarrow$ Oakland Raiders $\rightarrow$ Buffalo Bills $\rightarrow$ New York Jets $\rightarrow$ New Orleans Saints $\rightarrow$ Chicago Bears $\rightarrow$ Los Angeles Rams $\rightarrow$ Philadelphia Eagles $\rightarrow$ New York Giants $\rightarrow$ Washington Redskins $\rightarrow$ Atlanta Falcons $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ St. Louis Cardinals $\rightarrow$ Minnesota Vikings $\rightarrow$ Cincinnati Bengals $\rightarrow$ Green Bay Packers $\rightarrow$ San Francisco 49ers $\rightarrow$ Detroit Lions $\rightarrow$ Baltimore Colts $\rightarrow$ New England Patriots $\rightarrow$ Kansas City Chiefs $\rightarrow$ San Diego Chargers $\rightarrow$ Miami Dolphins $\rightarrow$ Seattle Seahawks $\rightarrow$ Cleveland Browns...
+### 1978
+Oakland Raiders $\rightarrow$ Kansas City Chiefs $\rightarrow$ San Diego Chargers $\rightarrow$ Seattle Seahawks $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ New Orleans Saints $\rightarrow$ New York Giants $\rightarrow$ San Francisco 49ers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Cleveland Browns $\rightarrow$ Los Angeles Rams $\rightarrow$ Minnesota Vikings $\rightarrow$ Detroit Lions $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Buffalo Bills $\rightarrow$ Baltimore Colts $\rightarrow$ New England Patriots $\rightarrow$ New York Jets $\rightarrow$ Miami Dolphins $\rightarrow$ Dallas Cowboys $\rightarrow$ Philadelphia Eagles $\rightarrow$ Washington Redskins $\rightarrow$ St. Louis Cardinals $\rightarrow$ Atlanta Falcons $\rightarrow$ Houston Oilers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Denver Broncos $\rightarrow$ Oakland Raiders...
+### 1979
+Oakland Raiders $\rightarrow$ Miami Dolphins $\rightarrow$ Seattle Seahawks $\rightarrow$ Cleveland Browns $\rightarrow$ Kansas City Chiefs $\rightarrow$ Baltimore Colts $\rightarrow$ New England Patriots $\rightarrow$ San Diego Chargers $\rightarrow$ New Orleans Saints $\rightarrow$ Detroit Lions $\rightarrow$ Chicago Bears $\rightarrow$ Los Angeles Rams $\rightarrow$ St. Louis Cardinals $\rightarrow$ Houston Oilers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Denver Broncos $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ New York Giants $\rightarrow$ Washington Redskins $\rightarrow$ Dallas Cowboys $\rightarrow$ Philadelphia Eagles $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ Buffalo Bills $\rightarrow$ New York Jets $\rightarrow$ Oakland Raiders...
+### 1980
+Cincinnati Bengals $\rightarrow$ Kansas City Chiefs $\rightarrow$ Houston Oilers $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ New York Giants $\rightarrow$ St. Louis Cardinals $\rightarrow$ Philadelphia Eagles $\rightarrow$ New Orleans Saints $\rightarrow$ New York Jets $\rightarrow$ Atlanta Falcons $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ Detroit Lions $\rightarrow$ Los Angeles Rams $\rightarrow$ Dallas Cowboys $\rightarrow$ Oakland Raiders $\rightarrow$ Seattle Seahawks $\rightarrow$ Washington Redskins $\rightarrow$ San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ Cleveland Browns $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Miami Dolphins $\rightarrow$ San Francisco 49ers $\rightarrow$ New England Patriots $\rightarrow$ Baltimore Colts $\rightarrow$ Buffalo Bills $\rightarrow$ Cincinnati Bengals...
+### 1981
+Oakland Raiders $\rightarrow$ Seattle Seahawks $\rightarrow$ San Diego Chargers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Green Bay Packers $\rightarrow$ New Orleans Saints $\rightarrow$ Los Angeles Rams $\rightarrow$ Chicago Bears $\rightarrow$ Denver Broncos $\rightarrow$ Cleveland Browns $\rightarrow$ Cincinnati Bengals $\rightarrow$ New York Jets $\rightarrow$ New York Giants $\rightarrow$ St. Louis Cardinals $\rightarrow$ Buffalo Bills $\rightarrow$ Miami Dolphins $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Atlanta Falcons $\rightarrow$ Minnesota Vikings $\rightarrow$ Philadelphia Eagles $\rightarrow$ Washington Redskins $\rightarrow$ Detroit Lions $\rightarrow$ San Francisco 49ers $\rightarrow$ Dallas Cowboys $\rightarrow$ Baltimore Colts $\rightarrow$ New England Patriots $\rightarrow$ Houston Oilers $\rightarrow$ Oakland Raiders...
+### 1983
+Dallas Cowboys $\rightarrow$ Kansas City Chiefs $\rightarrow$ Denver Broncos $\rightarrow$ Baltimore Colts $\rightarrow$ New York Jets $\rightarrow$ Los Angeles Rams $\rightarrow$ New Orleans Saints $\rightarrow$ Chicago Bears $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Minnesota Vikings $\rightarrow$ Cleveland Browns $\rightarrow$ New England Patriots $\rightarrow$ Pittsburgh Steelers $\rightarrow$ San Diego Chargers $\rightarrow$ New York Giants $\rightarrow$ Philadelphia Eagles $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ St. Louis Cardinals $\rightarrow$ Seattle Seahawks $\rightarrow$ Los Angeles Raiders $\rightarrow$ Miami Dolphins $\rightarrow$ Buffalo Bills $\rightarrow$ Cincinnati Bengals $\rightarrow$ Houston Oilers $\rightarrow$ Detroit Lions $\rightarrow$ Green Bay Packers $\rightarrow$ Washington Redskins $\rightarrow$ Dallas Cowboys...
+### 1984
+Minnesota Vikings $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Detroit Lions $\rightarrow$ Green Bay Packers $\rightarrow$ Los Angeles Rams $\rightarrow$ Cincinnati Bengals $\rightarrow$ Cleveland Browns $\rightarrow$ Atlanta Falcons $\rightarrow$ New Orleans Saints $\rightarrow$ St. Louis Cardinals $\rightarrow$ New York Giants $\rightarrow$ Dallas Cowboys $\rightarrow$ Chicago Bears $\rightarrow$ Los Angeles Raiders $\rightarrow$ Houston Oilers $\rightarrow$ New York Jets $\rightarrow$ Kansas City Chiefs $\rightarrow$ Denver Broncos $\rightarrow$ San Diego Chargers $\rightarrow$ Miami Dolphins $\rightarrow$ Washington Redskins $\rightarrow$ Philadelphia Eagles $\rightarrow$ New England Patriots $\rightarrow$ Seattle Seahawks $\rightarrow$ Buffalo Bills $\rightarrow$ Indianapolis Colts $\rightarrow$ Pittsburgh Steelers $\rightarrow$ San Francisco 49ers $\rightarrow$ Minnesota Vikings...
+### 1985
+St. Louis Cardinals $\rightarrow$ Cleveland Browns $\rightarrow$ New England Patriots $\rightarrow$ Seattle Seahawks $\rightarrow$ San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Indianapolis Colts $\rightarrow$ Buffalo Bills $\rightarrow$ Houston Oilers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Dallas Cowboys $\rightarrow$ Washington Redskins $\rightarrow$ Atlanta Falcons $\rightarrow$ Los Angeles Rams $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Detroit Lions $\rightarrow$ Miami Dolphins $\rightarrow$ Chicago Bears $\rightarrow$ Minnesota Vikings $\rightarrow$ San Francisco 49ers $\rightarrow$ Los Angeles Raiders $\rightarrow$ New York Jets $\rightarrow$ Green Bay Packers $\rightarrow$ New York Giants $\rightarrow$ New Orleans Saints $\rightarrow$ Philadelphia Eagles $\rightarrow$ St. Louis Cardinals...
+### 1986
+Seattle Seahawks $\rightarrow$ Kansas City Chiefs $\rightarrow$ Cincinnati Bengals $\rightarrow$ Green Bay Packers $\rightarrow$ Cleveland Browns $\rightarrow$ Miami Dolphins $\rightarrow$ New York Jets $\rightarrow$ New England Patriots $\rightarrow$ New Orleans Saints $\rightarrow$ Los Angeles Rams $\rightarrow$ Chicago Bears $\rightarrow$ Detroit Lions $\rightarrow$ Minnesota Vikings $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Buffalo Bills $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Houston Oilers $\rightarrow$ Indianapolis Colts $\rightarrow$ Los Angeles Raiders $\rightarrow$ Dallas Cowboys $\rightarrow$ New York Giants $\rightarrow$ San Francisco 49ers $\rightarrow$ Atlanta Falcons $\rightarrow$ St. Louis Cardinals $\rightarrow$ Philadelphia Eagles $\rightarrow$ San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ Washington Redskins $\rightarrow$ Seattle Seahawks...
+### 1987
+San Francisco 49ers $\rightarrow$ Los Angeles Rams $\rightarrow$ St. Louis Cardinals $\rightarrow$ New York Giants $\rightarrow$ Philadelphia Eagles $\rightarrow$ New Orleans Saints $\rightarrow$ Atlanta Falcons $\rightarrow$ Washington Redskins $\rightarrow$ Detroit Lions $\rightarrow$ Dallas Cowboys $\rightarrow$ New England Patriots $\rightarrow$ New York Jets $\rightarrow$ Seattle Seahawks $\rightarrow$ Chicago Bears $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ Denver Broncos $\rightarrow$ San Diego Chargers $\rightarrow$ Cleveland Browns $\rightarrow$ Houston Oilers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Kansas City Chiefs $\rightarrow$ Los Angeles Raiders $\rightarrow$ Buffalo Bills $\rightarrow$ Indianapolis Colts $\rightarrow$ Miami Dolphins $\rightarrow$ Pittsburgh Steelers $\rightarrow$ San Francisco 49ers...
+### 1988
+Denver Broncos $\rightarrow$ Los Angeles Rams $\rightarrow$ New York Giants $\rightarrow$ Kansas City Chiefs $\rightarrow$ Seattle Seahawks $\rightarrow$ Houston Oilers $\rightarrow$ New England Patriots $\rightarrow$ Chicago Bears $\rightarrow$ Buffalo Bills $\rightarrow$ New York Jets $\rightarrow$ Detroit Lions $\rightarrow$ Atlanta Falcons $\rightarrow$ Los Angeles Raiders $\rightarrow$ San Diego Chargers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Miami Dolphins $\rightarrow$ Cleveland Browns $\rightarrow$ Cincinnati Bengals $\rightarrow$ Washington Redskins $\rightarrow$ Philadelphia Eagles $\rightarrow$ Dallas Cowboys $\rightarrow$ Phoenix Cardinals $\rightarrow$ San Francisco 49ers $\rightarrow$ New Orleans Saints $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ Indianapolis Colts $\rightarrow$ Denver Broncos...
+### 1989
+Cincinnati Bengals $\rightarrow$ Kansas City Chiefs $\rightarrow$ Dallas Cowboys $\rightarrow$ Washington Redskins $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Phoenix Cardinals $\rightarrow$ Seattle Seahawks $\rightarrow$ New England Patriots $\rightarrow$ Houston Oilers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Detroit Lions $\rightarrow$ New Orleans Saints $\rightarrow$ Los Angeles Rams $\rightarrow$ New York Giants $\rightarrow$ Minnesota Vikings $\rightarrow$ Green Bay Packers $\rightarrow$ San Francisco 49ers $\rightarrow$ New York Jets $\rightarrow$ Atlanta Falcons $\rightarrow$ Buffalo Bills $\rightarrow$ Indianapolis Colts $\rightarrow$ Miami Dolphins $\rightarrow$ Cleveland Browns $\rightarrow$ Chicago Bears $\rightarrow$ Philadelphia Eagles $\rightarrow$ Denver Broncos $\rightarrow$ San Diego Chargers $\rightarrow$ Los Angeles Raiders $\rightarrow$ Cincinnati Bengals...
+### 1990
+Atlanta Falcons $\rightarrow$ Los Angeles Rams $\rightarrow$ Cleveland Browns $\rightarrow$ Pittsburgh Steelers $\rightarrow$ New England Patriots $\rightarrow$ Indianapolis Colts $\rightarrow$ Kansas City Chiefs $\rightarrow$ Detroit Lions $\rightarrow$ Minnesota Vikings $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ Los Angeles Raiders $\rightarrow$ Miami Dolphins $\rightarrow$ Buffalo Bills $\rightarrow$ New York Giants $\rightarrow$ Phoenix Cardinals $\rightarrow$ Philadelphia Eagles $\rightarrow$ Washington Redskins $\rightarrow$ Dallas Cowboys $\rightarrow$ San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ Seattle Seahawks $\rightarrow$ Houston Oilers $\rightarrow$ New Orleans Saints $\rightarrow$ San Francisco 49ers $\rightarrow$ Cincinnati Bengals $\rightarrow$ New York Jets $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Atlanta Falcons...
+### 1991
+New England Patriots $\rightarrow$ Houston Oilers $\rightarrow$ Denver Broncos $\rightarrow$ Seattle Seahawks $\rightarrow$ Indianapolis Colts $\rightarrow$ New York Jets $\rightarrow$ Miami Dolphins $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Philadelphia Eagles $\rightarrow$ Washington Redskins $\rightarrow$ Detroit Lions $\rightarrow$ Dallas Cowboys $\rightarrow$ Phoenix Cardinals $\rightarrow$ Los Angeles Rams $\rightarrow$ New York Giants $\rightarrow$ San Francisco 49ers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Buffalo Bills $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Cleveland Browns $\rightarrow$ San Diego Chargers $\rightarrow$ New Orleans Saints $\rightarrow$ Minnesota Vikings $\rightarrow$ Atlanta Falcons $\rightarrow$ Los Angeles Raiders $\rightarrow$ Cincinnati Bengals $\rightarrow$ New England Patriots...
+### 1992
+New York Jets $\rightarrow$ Buffalo Bills $\rightarrow$ Miami Dolphins $\rightarrow$ Houston Oilers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Philadelphia Eagles $\rightarrow$ Dallas Cowboys $\rightarrow$ Seattle Seahawks $\rightarrow$ Denver Broncos $\rightarrow$ Cleveland Browns $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ Los Angeles Rams $\rightarrow$ New England Patriots $\rightarrow$ Indianapolis Colts $\rightarrow$ Cincinnati Bengals $\rightarrow$ Los Angeles Raiders $\rightarrow$ New York Giants $\rightarrow$ Washington Redskins $\rightarrow$ Atlanta Falcons $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Detroit Lions $\rightarrow$ Minnesota Vikings $\rightarrow$ Pittsburgh Steelers $\rightarrow$ San Diego Chargers $\rightarrow$ Phoenix Cardinals $\rightarrow$ San Francisco 49ers $\rightarrow$ New Orleans Saints $\rightarrow$ New York Jets...
+### 1993
+Phoenix Cardinals $\rightarrow$ New York Giants $\rightarrow$ Miami Dolphins $\rightarrow$ Philadelphia Eagles $\rightarrow$ Green Bay Packers $\rightarrow$ Detroit Lions $\rightarrow$ New England Patriots $\rightarrow$ Cleveland Browns $\rightarrow$ New Orleans Saints $\rightarrow$ Los Angeles Rams $\rightarrow$ Chicago Bears $\rightarrow$ Kansas City Chiefs $\rightarrow$ Cincinnati Bengals $\rightarrow$ Los Angeles Raiders $\rightarrow$ Buffalo Bills $\rightarrow$ Houston Oilers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ Minnesota Vikings $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Denver Broncos $\rightarrow$ Seattle Seahawks $\rightarrow$ San Diego Chargers $\rightarrow$ Indianapolis Colts $\rightarrow$ New York Jets $\rightarrow$ Washington Redskins $\rightarrow$ Dallas Cowboys $\rightarrow$ Phoenix Cardinals...
+### 1994
+Chicago Bears $\rightarrow$ Arizona Cardinals $\rightarrow$ Houston Oilers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Philadelphia Eagles $\rightarrow$ San Francisco 49ers $\rightarrow$ San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ Cleveland Browns $\rightarrow$ Dallas Cowboys $\rightarrow$ New York Giants $\rightarrow$ Washington Redskins $\rightarrow$ Los Angeles Rams $\rightarrow$ Kansas City Chiefs $\rightarrow$ Seattle Seahawks $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Buffalo Bills $\rightarrow$ New England Patriots $\rightarrow$ Detroit Lions $\rightarrow$ Green Bay Packers $\rightarrow$ New York Jets $\rightarrow$ Indianapolis Colts $\rightarrow$ Miami Dolphins $\rightarrow$ Los Angeles Raiders $\rightarrow$ New Orleans Saints $\rightarrow$ Atlanta Falcons $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Minnesota Vikings $\rightarrow$ Chicago Bears...
+### 1995
+Oakland Raiders $\rightarrow$ San Diego Chargers $\rightarrow$ Arizona Cardinals $\rightarrow$ Seattle Seahawks $\rightarrow$ New York Giants $\rightarrow$ New Orleans Saints $\rightarrow$ Miami Dolphins $\rightarrow$ New England Patriots $\rightarrow$ New York Jets $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Cleveland Browns $\rightarrow$ Kansas City Chiefs $\rightarrow$ Washington Redskins $\rightarrow$ Detroit Lions $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Chicago Bears $\rightarrow$ Carolina Panthers $\rightarrow$ Atlanta Falcons $\rightarrow$ St. Louis Rams $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Houston Oilers $\rightarrow$ Buffalo Bills $\rightarrow$ Indianapolis Colts $\rightarrow$ San Francisco 49ers $\rightarrow$ Dallas Cowboys $\rightarrow$ Philadelphia Eagles $\rightarrow$ Denver Broncos $\rightarrow$ Oakland Raiders...
+### 1996
+St. Louis Rams $\rightarrow$ Cincinnati Bengals $\rightarrow$ Atlanta Falcons $\rightarrow$ Carolina Panthers $\rightarrow$ Houston Oilers $\rightarrow$ Baltimore Ravens $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Seattle Seahawks $\rightarrow$ Buffalo Bills $\rightarrow$ Philadelphia Eagles $\rightarrow$ Dallas Cowboys $\rightarrow$ Miami Dolphins $\rightarrow$ New England Patriots $\rightarrow$ New York Giants $\rightarrow$ Detroit Lions $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Oakland Raiders $\rightarrow$ New York Jets $\rightarrow$ Arizona Cardinals $\rightarrow$ New Orleans Saints $\rightarrow$ Chicago Bears $\rightarrow$ San Diego Chargers $\rightarrow$ Indianapolis Colts $\rightarrow$ Kansas City Chiefs $\rightarrow$ Denver Broncos $\rightarrow$ Minnesota Vikings $\rightarrow$ Green Bay Packers $\rightarrow$ San Francisco 49ers $\rightarrow$ Washington Redskins $\rightarrow$ St. Louis Rams...
+### 1997
+Oakland Raiders $\rightarrow$ San Diego Chargers $\rightarrow$ Baltimore Ravens $\rightarrow$ Seattle Seahawks $\rightarrow$ Indianapolis Colts $\rightarrow$ Green Bay Packers $\rightarrow$ Miami Dolphins $\rightarrow$ Buffalo Bills $\rightarrow$ New York Jets $\rightarrow$ Cincinnati Bengals $\rightarrow$ Tennessee Oilers $\rightarrow$ Washington Redskins $\rightarrow$ Chicago Bears $\rightarrow$ St. Louis Rams $\rightarrow$ New York Giants $\rightarrow$ Detroit Lions $\rightarrow$ Atlanta Falcons $\rightarrow$ New Orleans Saints $\rightarrow$ Carolina Panthers $\rightarrow$ Dallas Cowboys $\rightarrow$ Arizona Cardinals $\rightarrow$ Philadelphia Eagles $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Denver Broncos $\rightarrow$ Kansas City Chiefs $\rightarrow$ San Francisco 49ers $\rightarrow$ Minnesota Vikings $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ New England Patriots $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Oakland Raiders...
+### 1998
+New York Jets $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ New York Giants $\rightarrow$ Denver Broncos $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Miami Dolphins $\rightarrow$ Oakland Raiders $\rightarrow$ Arizona Cardinals $\rightarrow$ New Orleans Saints $\rightarrow$ Carolina Panthers $\rightarrow$ Indianapolis Colts $\rightarrow$ Cincinnati Bengals $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Green Bay Packers $\rightarrow$ Chicago Bears $\rightarrow$ Tennessee Oilers $\rightarrow$ Baltimore Ravens $\rightarrow$ Detroit Lions $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Minnesota Vikings $\rightarrow$ Dallas Cowboys $\rightarrow$ Seattle Seahawks $\rightarrow$ Washington Redskins $\rightarrow$ San Diego Chargers $\rightarrow$ Buffalo Bills $\rightarrow$ New England Patriots $\rightarrow$ Kansas City Chiefs $\rightarrow$ Philadelphia Eagles $\rightarrow$ St. Louis Rams $\rightarrow$ New York Jets...
+### 1999
+New York Jets $\rightarrow$ Denver Broncos $\rightarrow$ Detroit Lions $\rightarrow$ St. Louis Rams $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ Tennessee Titans $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Cincinnati Bengals $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Baltimore Ravens $\rightarrow$ Cleveland Browns $\rightarrow$ New Orleans Saints $\rightarrow$ Carolina Panthers $\rightarrow$ Green Bay Packers $\rightarrow$ San Diego Chargers $\rightarrow$ Oakland Raiders $\rightarrow$ Minnesota Vikings $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Seattle Seahawks $\rightarrow$ Chicago Bears $\rightarrow$ Kansas City Chiefs $\rightarrow$ New England Patriots $\rightarrow$ Arizona Cardinals $\rightarrow$ Dallas Cowboys $\rightarrow$ Miami Dolphins $\rightarrow$ Indianapolis Colts $\rightarrow$ Buffalo Bills $\rightarrow$ Philadelphia Eagles $\rightarrow$ Washington Redskins $\rightarrow$ New York Giants $\rightarrow$ New York Jets...
+### 2000
+Indianapolis Colts $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Baltimore Ravens $\rightarrow$ San Diego Chargers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Carolina Panthers $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ Detroit Lions $\rightarrow$ Chicago Bears $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Miami Dolphins $\rightarrow$ Cincinnati Bengals $\rightarrow$ Denver Broncos $\rightarrow$ New Orleans Saints $\rightarrow$ Arizona Cardinals $\rightarrow$ Cleveland Browns $\rightarrow$ New England Patriots $\rightarrow$ Buffalo Bills $\rightarrow$ Tennessee Titans $\rightarrow$ New York Giants $\rightarrow$ Philadelphia Eagles $\rightarrow$ Atlanta Falcons $\rightarrow$ San Francisco 49ers $\rightarrow$ Dallas Cowboys $\rightarrow$ Washington Redskins $\rightarrow$ St. Louis Rams $\rightarrow$ Seattle Seahawks $\rightarrow$ Oakland Raiders $\rightarrow$ New York Jets $\rightarrow$ Indianapolis Colts...
+### 2001
+Minnesota Vikings $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Baltimore Ravens $\rightarrow$ Denver Broncos $\rightarrow$ Seattle Seahawks $\rightarrow$ Oakland Raiders $\rightarrow$ Indianapolis Colts $\rightarrow$ New York Jets $\rightarrow$ New England Patriots $\rightarrow$ Miami Dolphins $\rightarrow$ Atlanta Falcons $\rightarrow$ New Orleans Saints $\rightarrow$ St. Louis Rams $\rightarrow$ San Francisco 49ers $\rightarrow$ Buffalo Bills $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Cleveland Browns $\rightarrow$ Detroit Lions $\rightarrow$ Dallas Cowboys $\rightarrow$ New York Giants $\rightarrow$ Kansas City Chiefs $\rightarrow$ San Diego Chargers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Tennessee Titans $\rightarrow$ Green Bay Packers $\rightarrow$ Chicago Bears $\rightarrow$ Arizona Cardinals $\rightarrow$ Philadelphia Eagles $\rightarrow$ Washington Redskins $\rightarrow$ Carolina Panthers $\rightarrow$ Minnesota Vikings...
+### 2002
+Oakland Raiders $\rightarrow$ Arizona Cardinals $\rightarrow$ Seattle Seahawks $\rightarrow$ Kansas City Chiefs $\rightarrow$ Miami Dolphins $\rightarrow$ Baltimore Ravens $\rightarrow$ Denver Broncos $\rightarrow$ New England Patriots $\rightarrow$ Detroit Lions $\rightarrow$ New Orleans Saints $\rightarrow$ Chicago Bears $\rightarrow$ Minnesota Vikings $\rightarrow$ Green Bay Packers $\rightarrow$ Carolina Panthers $\rightarrow$ Cleveland Browns $\rightarrow$ Cincinnati Bengals $\rightarrow$ Houston Texans $\rightarrow$ Jacksonville Jaguars $\rightarrow$ New York Jets $\rightarrow$ Buffalo Bills $\rightarrow$ San Diego Chargers $\rightarrow$ San Francisco 49ers $\rightarrow$ Washington Redskins $\rightarrow$ Tennessee Titans $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Atlanta Falcons $\rightarrow$ New York Giants $\rightarrow$ Indianapolis Colts $\rightarrow$ Philadelphia Eagles $\rightarrow$ Dallas Cowboys $\rightarrow$ St. Louis Rams $\rightarrow$ Oakland Raiders...
+### 2003
+Chicago Bears $\rightarrow$ Denver Broncos $\rightarrow$ Oakland Raiders $\rightarrow$ San Diego Chargers $\rightarrow$ Cleveland Browns $\rightarrow$ Arizona Cardinals $\rightarrow$ Cincinnati Bengals $\rightarrow$ Houston Texans $\rightarrow$ Buffalo Bills $\rightarrow$ New England Patriots $\rightarrow$ Indianapolis Colts $\rightarrow$ Miami Dolphins $\rightarrow$ Dallas Cowboys $\rightarrow$ Detroit Lions $\rightarrow$ St. Louis Rams $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ Kansas City Chiefs $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Baltimore Ravens $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Philadelphia Eagles $\rightarrow$ Atlanta Falcons $\rightarrow$ Carolina Panthers $\rightarrow$ New York Giants $\rightarrow$ New York Jets $\rightarrow$ Tennessee Titans $\rightarrow$ New Orleans Saints $\rightarrow$ Washington Redskins $\rightarrow$ Seattle Seahawks $\rightarrow$ San Francisco 49ers $\rightarrow$ Chicago Bears...
+### 2004
+Pittsburgh Steelers $\rightarrow$ New England Patriots $\rightarrow$ Indianapolis Colts $\rightarrow$ Detroit Lions $\rightarrow$ Chicago Bears $\rightarrow$ San Francisco 49ers $\rightarrow$ Arizona Cardinals $\rightarrow$ New Orleans Saints $\rightarrow$ Oakland Raiders $\rightarrow$ Buffalo Bills $\rightarrow$ Cleveland Browns $\rightarrow$ Washington Redskins $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Atlanta Falcons $\rightarrow$ New York Giants $\rightarrow$ Minnesota Vikings $\rightarrow$ Tennessee Titans $\rightarrow$ Cincinnati Bengals $\rightarrow$ Philadelphia Eagles $\rightarrow$ Green Bay Packers $\rightarrow$ Dallas Cowboys $\rightarrow$ Seattle Seahawks $\rightarrow$ Miami Dolphins $\rightarrow$ St. Louis Rams $\rightarrow$ New York Jets $\rightarrow$ Houston Texans $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Denver Broncos $\rightarrow$ San Diego Chargers $\rightarrow$ Carolina Panthers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Baltimore Ravens $\rightarrow$ Pittsburgh Steelers...
+### 2005
+New England Patriots $\rightarrow$ Buffalo Bills $\rightarrow$ Kansas City Chiefs $\rightarrow$ San Diego Chargers $\rightarrow$ Indianapolis Colts $\rightarrow$ Cincinnati Bengals $\rightarrow$ Chicago Bears $\rightarrow$ Baltimore Ravens $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Tennessee Titans $\rightarrow$ Houston Texans $\rightarrow$ Arizona Cardinals $\rightarrow$ St. Louis Rams $\rightarrow$ Dallas Cowboys $\rightarrow$ Philadelphia Eagles $\rightarrow$ Green Bay Packers $\rightarrow$ Detroit Lions $\rightarrow$ New Orleans Saints $\rightarrow$ Carolina Panthers $\rightarrow$ New York Jets $\rightarrow$ Oakland Raiders $\rightarrow$ Washington Redskins $\rightarrow$ Seattle Seahawks $\rightarrow$ New York Giants $\rightarrow$ Denver Broncos $\rightarrow$ Jacksonville Jaguars $\rightarrow$ San Francisco 49ers $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Atlanta Falcons $\rightarrow$ Minnesota Vikings $\rightarrow$ Cleveland Browns $\rightarrow$ Miami Dolphins $\rightarrow$ New England Patriots...
+### 2006
+St. Louis Rams $\rightarrow$ Green Bay Packers $\rightarrow$ Chicago Bears $\rightarrow$ San Francisco 49ers $\rightarrow$ Seattle Seahawks $\rightarrow$ Denver Broncos $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Kansas City Chiefs $\rightarrow$ San Diego Chargers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Baltimore Ravens $\rightarrow$ Atlanta Falcons $\rightarrow$ Washington Redskins $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Tennessee Titans $\rightarrow$ Indianapolis Colts $\rightarrow$ New England Patriots $\rightarrow$ Miami Dolphins $\rightarrow$ Detroit Lions $\rightarrow$ Buffalo Bills $\rightarrow$ Minnesota Vikings $\rightarrow$ Carolina Panthers $\rightarrow$ New Orleans Saints $\rightarrow$ Dallas Cowboys $\rightarrow$ New York Giants $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Philadelphia Eagles $\rightarrow$ Houston Texans $\rightarrow$ Cleveland Browns $\rightarrow$ New York Jets $\rightarrow$ Oakland Raiders $\rightarrow$ Arizona Cardinals $\rightarrow$ St. Louis Rams...
+### 2009
+Philadelphia Eagles $\rightarrow$ Chicago Bears $\rightarrow$ Minnesota Vikings $\rightarrow$ Cincinnati Bengals $\rightarrow$ Green Bay Packers $\rightarrow$ St. Louis Rams $\rightarrow$ Detroit Lions $\rightarrow$ Cleveland Browns $\rightarrow$ Jacksonville Jaguars $\rightarrow$ New York Jets $\rightarrow$ Houston Texans $\rightarrow$ New England Patriots $\rightarrow$ Tennessee Titans $\rightarrow$ Buffalo Bills $\rightarrow$ Indianapolis Colts $\rightarrow$ Baltimore Ravens $\rightarrow$ Kansas City Chiefs $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Miami Dolphins $\rightarrow$ Carolina Panthers $\rightarrow$ New Orleans Saints $\rightarrow$ Atlanta Falcons $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Seattle Seahawks $\rightarrow$ San Francisco 49ers $\rightarrow$ Arizona Cardinals $\rightarrow$ New York Giants $\rightarrow$ Dallas Cowboys $\rightarrow$ Washington Redskins $\rightarrow$ Oakland Raiders $\rightarrow$ Denver Broncos $\rightarrow$ San Diego Chargers $\rightarrow$ Philadelphia Eagles...
+### 2010
+Denver Broncos $\rightarrow$ Kansas City Chiefs $\rightarrow$ Buffalo Bills $\rightarrow$ Miami Dolphins $\rightarrow$ Cincinnati Bengals $\rightarrow$ Baltimore Ravens $\rightarrow$ New York Jets $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Carolina Panthers $\rightarrow$ San Francisco 49ers $\rightarrow$ Arizona Cardinals $\rightarrow$ New Orleans Saints $\rightarrow$ Atlanta Falcons $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Cleveland Browns $\rightarrow$ New England Patriots $\rightarrow$ Minnesota Vikings $\rightarrow$ Detroit Lions $\rightarrow$ St. Louis Rams $\rightarrow$ San Diego Chargers $\rightarrow$ Tennessee Titans $\rightarrow$ Dallas Cowboys $\rightarrow$ Indianapolis Colts $\rightarrow$ Washington Redskins $\rightarrow$ Green Bay Packers $\rightarrow$ New York Giants $\rightarrow$ Houston Texans $\rightarrow$ Oakland Raiders $\rightarrow$ Seattle Seahawks $\rightarrow$ Chicago Bears $\rightarrow$ Philadelphia Eagles $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Denver Broncos...
+### 2011
+Philadelphia Eagles $\rightarrow$ Dallas Cowboys $\rightarrow$ San Francisco 49ers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ New England Patriots $\rightarrow$ San Diego Chargers $\rightarrow$ Buffalo Bills $\rightarrow$ Denver Broncos $\rightarrow$ Kansas City Chiefs $\rightarrow$ Green Bay Packers $\rightarrow$ Atlanta Falcons $\rightarrow$ Indianapolis Colts $\rightarrow$ Tennessee Titans $\rightarrow$ Houston Texans $\rightarrow$ Cincinnati Bengals $\rightarrow$ Seattle Seahawks $\rightarrow$ St. Louis Rams $\rightarrow$ New Orleans Saints $\rightarrow$ Carolina Panthers $\rightarrow$ Washington Redskins $\rightarrow$ New York Giants $\rightarrow$ New York Jets $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Baltimore Ravens $\rightarrow$ Cleveland Browns $\rightarrow$ Miami Dolphins $\rightarrow$ Oakland Raiders $\rightarrow$ Chicago Bears $\rightarrow$ Detroit Lions $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Minnesota Vikings $\rightarrow$ Arizona Cardinals $\rightarrow$ Philadelphia Eagles...
+### 2012
+New York Giants $\rightarrow$ Green Bay Packers $\rightarrow$ Houston Texans $\rightarrow$ Chicago Bears $\rightarrow$ Detroit Lions $\rightarrow$ Seattle Seahawks $\rightarrow$ Buffalo Bills $\rightarrow$ New York Jets $\rightarrow$ Miami Dolphins $\rightarrow$ Oakland Raiders $\rightarrow$ Kansas City Chiefs $\rightarrow$ New Orleans Saints $\rightarrow$ Dallas Cowboys $\rightarrow$ Carolina Panthers $\rightarrow$ Atlanta Falcons $\rightarrow$ Arizona Cardinals $\rightarrow$ Philadelphia Eagles $\rightarrow$ Baltimore Ravens $\rightarrow$ Cleveland Browns $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Washington Redskins $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ San Diego Chargers $\rightarrow$ Tennessee Titans $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Indianapolis Colts $\rightarrow$ Minnesota Vikings $\rightarrow$ St. Louis Rams $\rightarrow$ San Francisco 49ers $\rightarrow$ New England Patriots $\rightarrow$ Denver Broncos $\rightarrow$ Cincinnati Bengals $\rightarrow$ New York Giants...
+### 2013
+Washington Redskins $\rightarrow$ San Diego Chargers $\rightarrow$ Indianapolis Colts $\rightarrow$ Denver Broncos $\rightarrow$ Kansas City Chiefs $\rightarrow$ Dallas Cowboys $\rightarrow$ Oakland Raiders $\rightarrow$ Houston Texans $\rightarrow$ Tennessee Titans $\rightarrow$ New York Jets $\rightarrow$ New Orleans Saints $\rightarrow$ Carolina Panthers $\rightarrow$ San Francisco 49ers $\rightarrow$ Seattle Seahawks $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Cleveland Browns $\rightarrow$ Buffalo Bills $\rightarrow$ Miami Dolphins $\rightarrow$ Cincinnati Bengals $\rightarrow$ New England Patriots $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Baltimore Ravens $\rightarrow$ Minnesota Vikings $\rightarrow$ Philadelphia Eagles $\rightarrow$ Chicago Bears $\rightarrow$ New York Giants $\rightarrow$ Green Bay Packers $\rightarrow$ Atlanta Falcons $\rightarrow$ St. Louis Rams $\rightarrow$ Arizona Cardinals $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Detroit Lions $\rightarrow$ Washington Redskins...
+### 2014
+Oakland Raiders $\rightarrow$ Buffalo Bills $\rightarrow$ New England Patriots $\rightarrow$ Denver Broncos $\rightarrow$ Miami Dolphins $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Cleveland Browns $\rightarrow$ New Orleans Saints $\rightarrow$ Carolina Panthers $\rightarrow$ Detroit Lions $\rightarrow$ Minnesota Vikings $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Cincinnati Bengals $\rightarrow$ Tennessee Titans $\rightarrow$ Kansas City Chiefs $\rightarrow$ St. Louis Rams $\rightarrow$ San Francisco 49ers $\rightarrow$ New York Giants $\rightarrow$ Washington Redskins $\rightarrow$ Philadelphia Eagles $\rightarrow$ Dallas Cowboys $\rightarrow$ Indianapolis Colts $\rightarrow$ Houston Texans $\rightarrow$ Baltimore Ravens $\rightarrow$ Atlanta Falcons $\rightarrow$ Arizona Cardinals $\rightarrow$ San Diego Chargers $\rightarrow$ Seattle Seahawks $\rightarrow$ Green Bay Packers $\rightarrow$ Chicago Bears $\rightarrow$ New York Jets $\rightarrow$ Oakland Raiders...
+### 2015
+New Orleans Saints $\rightarrow$ Indianapolis Colts $\rightarrow$ Denver Broncos $\rightarrow$ Oakland Raiders $\rightarrow$ San Diego Chargers $\rightarrow$ Miami Dolphins $\rightarrow$ Washington Redskins $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Dallas Cowboys $\rightarrow$ Philadelphia Eagles $\rightarrow$ New England Patriots $\rightarrow$ Houston Texans $\rightarrow$ Cincinnati Bengals $\rightarrow$ Seattle Seahawks $\rightarrow$ Chicago Bears $\rightarrow$ Kansas City Chiefs $\rightarrow$ Buffalo Bills $\rightarrow$ New York Jets $\rightarrow$ Cleveland Browns $\rightarrow$ Baltimore Ravens $\rightarrow$ Pittsburgh Steelers $\rightarrow$ St. Louis Rams $\rightarrow$ Arizona Cardinals $\rightarrow$ Detroit Lions $\rightarrow$ Green Bay Packers $\rightarrow$ Minnesota Vikings $\rightarrow$ New York Giants $\rightarrow$ San Francisco 49ers $\rightarrow$ Atlanta Falcons $\rightarrow$ Carolina Panthers $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Tennessee Titans $\rightarrow$ New Orleans Saints...
+### 2016
+Oakland Raiders $\rightarrow$ New Orleans Saints $\rightarrow$ Arizona Cardinals $\rightarrow$ Seattle Seahawks $\rightarrow$ Miami Dolphins $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Baltimore Ravens $\rightarrow$ Cleveland Browns $\rightarrow$ San Diego Chargers $\rightarrow$ Denver Broncos $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Chicago Bears $\rightarrow$ San Francisco 49ers $\rightarrow$ Los Angeles Rams $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Carolina Panthers $\rightarrow$ Washington Redskins $\rightarrow$ Green Bay Packers $\rightarrow$ New York Giants $\rightarrow$ Dallas Cowboys $\rightarrow$ Cincinnati Bengals $\rightarrow$ New York Jets $\rightarrow$ Buffalo Bills $\rightarrow$ New England Patriots $\rightarrow$ Houston Texans $\rightarrow$ Indianapolis Colts $\rightarrow$ Minnesota Vikings $\rightarrow$ Tennessee Titans $\rightarrow$ Detroit Lions $\rightarrow$ Philadelphia Eagles $\rightarrow$ Atlanta Falcons $\rightarrow$ Oakland Raiders...
+### 2018
+Pittsburgh Steelers $\rightarrow$ Cleveland Browns $\rightarrow$ Baltimore Ravens $\rightarrow$ Buffalo Bills $\rightarrow$ Detroit Lions $\rightarrow$ Carolina Panthers $\rightarrow$ Dallas Cowboys $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Miami Dolphins $\rightarrow$ Tennessee Titans $\rightarrow$ New England Patriots $\rightarrow$ Chicago Bears $\rightarrow$ Green Bay Packers $\rightarrow$ New York Jets $\rightarrow$ Indianapolis Colts $\rightarrow$ Oakland Raiders $\rightarrow$ Arizona Cardinals $\rightarrow$ San Francisco 49ers $\rightarrow$ Denver Broncos $\rightarrow$ Cincinnati Bengals $\rightarrow$ Atlanta Falcons $\rightarrow$ New York Giants $\rightarrow$ Houston Texans $\rightarrow$ Washington Redskins $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ New Orleans Saints $\rightarrow$ Minnesota Vikings $\rightarrow$ Philadelphia Eagles $\rightarrow$ Los Angeles Rams $\rightarrow$ Los Angeles Chargers $\rightarrow$ Seattle Seahawks $\rightarrow$ Kansas City Chiefs $\rightarrow$ Pittsburgh Steelers...
+### 2019
+Washington Redskins $\rightarrow$ Detroit Lions $\rightarrow$ Philadelphia Eagles $\rightarrow$ Buffalo Bills $\rightarrow$ Denver Broncos $\rightarrow$ Houston Texans $\rightarrow$ Tennessee Titans $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Oakland Raiders $\rightarrow$ Cincinnati Bengals $\rightarrow$ Cleveland Browns $\rightarrow$ Baltimore Ravens $\rightarrow$ San Francisco 49ers $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Los Angeles Chargers $\rightarrow$ Green Bay Packers $\rightarrow$ Chicago Bears $\rightarrow$ Minnesota Vikings $\rightarrow$ Atlanta Falcons $\rightarrow$ New Orleans Saints $\rightarrow$ Indianapolis Colts $\rightarrow$ Kansas City Chiefs $\rightarrow$ New England Patriots $\rightarrow$ Dallas Cowboys $\rightarrow$ Los Angeles Rams $\rightarrow$ Seattle Seahawks $\rightarrow$ Carolina Panthers $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Arizona Cardinals $\rightarrow$ New York Giants $\rightarrow$ Miami Dolphins $\rightarrow$ New York Jets $\rightarrow$ Washington Redskins...
+### 2020
+Buffalo Bills $\rightarrow$ New York Jets $\rightarrow$ Cleveland Browns $\rightarrow$ Tennessee Titans $\rightarrow$ Baltimore Ravens $\rightarrow$ Washington Football Team $\rightarrow$ Cincinnati Bengals $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Dallas Cowboys $\rightarrow$ Minnesota Vikings $\rightarrow$ Green Bay Packers $\rightarrow$ New Orleans Saints $\rightarrow$ Chicago Bears $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Detroit Lions $\rightarrow$ Atlanta Falcons $\rightarrow$ Carolina Panthers $\rightarrow$ Los Angeles Chargers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Houston Texans $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Indianapolis Colts $\rightarrow$ Las Vegas Raiders $\rightarrow$ Denver Broncos $\rightarrow$ New England Patriots $\rightarrow$ Miami Dolphins $\rightarrow$ Los Angeles Rams $\rightarrow$ New York Giants $\rightarrow$ Seattle Seahawks $\rightarrow$ Philadelphia Eagles $\rightarrow$ San Francisco 49ers $\rightarrow$ Arizona Cardinals $\rightarrow$ Buffalo Bills...
+### 2021
+Pittsburgh Steelers $\rightarrow$ Cleveland Browns $\rightarrow$ Detroit Lions $\rightarrow$ Arizona Cardinals $\rightarrow$ Seattle Seahawks $\rightarrow$ Indianapolis Colts $\rightarrow$ Buffalo Bills $\rightarrow$ Carolina Panthers $\rightarrow$ Atlanta Falcons $\rightarrow$ New Orleans Saints $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Chicago Bears $\rightarrow$ Cincinnati Bengals $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Miami Dolphins $\rightarrow$ New England Patriots $\rightarrow$ Los Angeles Chargers $\rightarrow$ Las Vegas Raiders $\rightarrow$ Baltimore Ravens $\rightarrow$ Kansas City Chiefs $\rightarrow$ Denver Broncos $\rightarrow$ Dallas Cowboys $\rightarrow$ Washington Football Team $\rightarrow$ New York Giants $\rightarrow$ Philadelphia Eagles $\rightarrow$ New York Jets $\rightarrow$ Houston Texans $\rightarrow$ Tennessee Titans $\rightarrow$ San Francisco 49ers $\rightarrow$ Los Angeles Rams $\rightarrow$ Minnesota Vikings $\rightarrow$ Green Bay Packers $\rightarrow$ Pittsburgh Steelers...
+### 2022
+Philadelphia Eagles $\rightarrow$ Detroit Lions $\rightarrow$ Minnesota Vikings $\rightarrow$ New York Giants $\rightarrow$ Green Bay Packers $\rightarrow$ New England Patriots $\rightarrow$ New York Jets $\rightarrow$ Chicago Bears $\rightarrow$ San Francisco 49ers $\rightarrow$ Arizona Cardinals $\rightarrow$ Carolina Panthers $\rightarrow$ New Orleans Saints $\rightarrow$ Cleveland Browns $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Dallas Cowboys $\rightarrow$ Cincinnati Bengals $\rightarrow$ Kansas City Chiefs $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Baltimore Ravens $\rightarrow$ Atlanta Falcons $\rightarrow$ Seattle Seahawks $\rightarrow$ Los Angeles Rams $\rightarrow$ Denver Broncos $\rightarrow$ Los Angeles Chargers $\rightarrow$ Miami Dolphins $\rightarrow$ Buffalo Bills $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Indianapolis Colts $\rightarrow$ Las Vegas Raiders $\rightarrow$ Houston Texans $\rightarrow$ Tennessee Titans $\rightarrow$ Washington Commanders $\rightarrow$ Philadelphia Eagles...
+### 2023
+New York Jets $\rightarrow$ Philadelphia Eagles $\rightarrow$ Dallas Cowboys $\rightarrow$ Los Angeles Rams $\rightarrow$ Arizona Cardinals $\rightarrow$ Pittsburgh Steelers $\rightarrow$ Tennessee Titans $\rightarrow$ Miami Dolphins $\rightarrow$ New England Patriots $\rightarrow$ Denver Broncos $\rightarrow$ Cleveland Browns $\rightarrow$ Baltimore Ravens $\rightarrow$ Seattle Seahawks $\rightarrow$ Detroit Lions $\rightarrow$ Los Angeles Chargers $\rightarrow$ Minnesota Vikings $\rightarrow$ Green Bay Packers $\rightarrow$ Kansas City Chiefs $\rightarrow$ Cincinnati Bengals $\rightarrow$ San Francisco 49ers $\rightarrow$ Tampa Bay Buccaneers $\rightarrow$ Chicago Bears $\rightarrow$ Las Vegas Raiders $\rightarrow$ New York Giants $\rightarrow$ Washington Commanders $\rightarrow$ Atlanta Falcons $\rightarrow$ New Orleans Saints $\rightarrow$ Indianapolis Colts $\rightarrow$ Carolina Panthers $\rightarrow$ Houston Texans $\rightarrow$ Jacksonville Jaguars $\rightarrow$ Buffalo Bills $\rightarrow$ New York Jets...
+
+
+## Rust Code
+If someone who is smarter than me gets this to work with 32 teams in a reasonable amount of time please let me know and I will link your solution here.
+
+```rust
+use ahash::AHashSet;
+use csv::Reader;
+use indicatif::ProgressBar;
+use serde::Deserialize;
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    vec,
+};
+
+#[derive(Deserialize, Debug)]
+struct GameRecord {
+    pub schedule_date: String,
+    pub schedule_season: u64,
+    pub schedule_week: String,
+    pub schedule_playoff: String,
+    pub team_home: String,
+    pub score_home: Option<u16>,
+    pub score_away: Option<u16>,
+    pub team_away: String,
+}
+
+fn cycle_solver(adj_matrix: Vec<Vec<bool>>, n: usize) -> bool {
+    let mut adj_map: Vec<Vec<usize>> = vec![Vec::new(); n];
+    for (idx, row) in adj_matrix.iter().enumerate() {
+        adj_map[idx] = row
+            .iter()
+            .enumerate()
+            .filter(|(_, val)| **val)
+            .map(|(col, _)| col)
+            .collect::<Vec<usize>>()
+    }
+
+    let mut dp: Vec<AHashSet<u64>> = vec![AHashSet::with_capacity(100); n];
+
+    dp.iter_mut().enumerate().take(n).for_each(|(idx, map)| {
+        map.insert(1 << idx);
+    });
+
+    let bar = ProgressBar::new(1 << n);
+
+    // begin loop of every potential subset of n vertices <-- very slow!
+    for combination in 0u64..(1 << n) {
+        bar.inc(1);
+        unsafe {
+            for (idx, neighbors) in adj_map
+                .iter()
+                .enumerate()
+                .filter(|(idx, _)| combination >> idx & 1 == 1)
+            {
+                for v in neighbors {
+                    if combination >> v & 1 == 1
+                        && dp.get_unchecked(*v).contains(&(combination ^ (1 << idx)))
+                    {
+                        dp.get_unchecked_mut(idx).insert(combination);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    bar.finish();
+
+    dp.iter()
+        .enumerate()
+        .any(|(idx, set)| set.contains(&((1 << n) - 1)) && adj_matrix[idx][0])
+}
+
+fn test_cycle_solver() {
+    for k in 29..30 {
+        let mut test_mat = vec![vec![false; k]; k];
+        for i in 1..=k {
+            test_mat[i - 1][i % k] = true;
+        }
+        assert!(cycle_solver(test_mat, k))
+    }
+}
+
+fn main() {
+    test_cycle_solver();
+    return;
+    let csv_file = File::open("./src/spreadspoke_scores.csv").unwrap();
+
+    let mut rdr = Reader::from_reader(csv_file);
+    let hdr = rdr.headers().unwrap().clone();
+
+    // get all records, filter up to 2023, only regular season games
+    let games: Vec<GameRecord> = rdr
+        .records()
+        .map(|r| r.unwrap().deserialize(Some(&hdr)).unwrap())
+        .filter(|row: &GameRecord| {
+            row.schedule_season < 2024
+                && row.schedule_playoff == "FALSE"
+                && row.schedule_season > 2013
+        })
+        .collect::<Vec<GameRecord>>();
+
+    let mut years: Vec<u64> = Vec::from_iter(
+        games
+            .iter()
+            .map(|r: &GameRecord| r.schedule_season)
+            .collect::<HashSet<u64>>(),
+    );
+    years.sort();
+
+    // go through year by year
+    for year in &years {
+        // get all reg. season games for that year
+        let year_games = games
+            .iter()
+            .filter(|r| r.schedule_season == *year)
+            .collect::<Vec<&GameRecord>>();
+
+        // get team -> idx mapping
+        let teams = Vec::from_iter(
+            year_games
+                .iter()
+                .flat_map(|r| vec![r.team_home.clone(), r.team_away.clone()])
+                .collect::<HashSet<String>>(),
+        );
+
+        let team_idx: HashMap<String, usize> = teams
+            .iter()
+            .enumerate()
+            .map(|(idx, team)| (team.clone(), idx))
+            .collect();
+
+        // get check if there was a completed circle of parity
+
+        // construct adj matrix, where adj[i][j] is true if and only if team i beat team j
+        let n = teams.len();
+        let mut season_adj_matrix: Vec<Vec<bool>> = vec![vec![false; n]; n];
+        for game in &year_games {
+            if game.score_home > game.score_away {
+                season_adj_matrix[*team_idx.get(&game.team_home).unwrap()]
+                    [*team_idx.get(&game.team_away).unwrap()] = true;
+            } else if game.score_away > game.score_home {
+                season_adj_matrix[*team_idx.get(&game.team_away).unwrap()]
+                    [*team_idx.get(&game.team_home).unwrap()] = true;
+            }
+        }
+        let had_cycle = cycle_solver(season_adj_matrix, teams.len());
+        println!("{}: {}", year, had_cycle);
+    }
+}
+```
