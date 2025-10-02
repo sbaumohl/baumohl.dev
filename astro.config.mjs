@@ -11,23 +11,23 @@ import playformCompress from "@playform/compress";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://baumohl.dev",
-  integrations: [
-    mdx({
-      optimize: true,
-    }),
-    sitemap(),
-    tailwind(),
-    icon(),
-    playformCompress(),
-    // react(),
-  ],
-  redirects: {
-    "/blog": "/",
-    "/pgp": "/blog/pgp-key/",
-  },
-  markdown: {
-    remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
-  },
+	site: "https://baumohl.dev",
+	integrations: [
+		mdx({
+			optimize: true,
+		}),
+		sitemap(),
+		tailwind(),
+		icon(),
+		playformCompress(),
+		// react(),
+	],
+	redirects: {
+		"/blog": "/",
+		"/pgp": "/blog/pgp-key/",
+	},
+	markdown: {
+		remarkPlugins: [remarkMath],
+		rehypePlugins: [rehypeKatex],
+	},
 });

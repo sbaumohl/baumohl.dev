@@ -1,26 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies, global-require */
 const defaultTheme = require("tailwindcss/defaultTheme");
 
-// module.exports = {
-//   theme: {
-//     extend: {
-//       typography: {
-//         DEFAULT: {
-//           css: {
-//             color: "#333",
-//             a: {
-//               color: "#3182ce",
-//               "&:hover": {
-//                 color: "#2c5282",
-//               },
-//             },
-//           },
-//         },
-//       },
-//     },
-//   },
-// };
-
 module.exports = {
   darkMode: "class",
   content: [
@@ -33,8 +13,12 @@ module.exports = {
         serif: ["'Source Serif 4 Variable'", ...defaultTheme.fontFamily.serif],
         sans: [...defaultTheme.fontFamily.sans],
         mono: [
-          "'Nimbus Mono PS'",
-          "'Courier New'",
+          "ui-monospace",
+          "'Cascadia Code'",
+          "'Source Code Pro'",
+          "Menlo",
+          "Consolas",
+          "DejaVu Sans Mono",
           ...defaultTheme.fontFamily.mono,
         ],
       },
@@ -80,9 +64,5 @@ module.exports = {
   plugins: [
     require("@tailwindcss/aspect-ratio"),
     require("@tailwindcss/typography"),
-    require("daisyui"),
   ],
-  daisyui: {
-    themes: ["lofi"],
-  },
 };
