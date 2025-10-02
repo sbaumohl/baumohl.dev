@@ -1,17 +1,102 @@
-/* .fancy-hover { */
-/*     background-image: linear-gradient(hsl(var(--sf)) 0 0); */
-/*     background-repeat: no-repeat; */
-/*     background-size: 200% .08em; */
-/*     background-position: 200% 100%; */
-/*     transition: background-size .2s, background-position .2s .2s; */
-/* } */
-/**/
-/* .fancy-hover:hover { */
-/*     transition: background-size .2s .2s, background-position .2s; */
-/*     background-size: 200% 100%; */
-/*     background-position: 100% 100%; */
-/* } */
+@import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@plugin '@tailwindcss/aspect-ratio';
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-serif:
+    'Source Serif 4 Variable', ui-serif, Georgia, Cambria, 'Times New Roman',
+    Times, serif;
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono:
+    ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
+    DejaVu Sans Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+
+  --color-bright-50: #f2f2f2;
+  --color-bright-100: #e6e6e6;
+  --color-bright-200: #cccccc;
+  --color-bright-300: #b3b3b3;
+  --color-bright-400: #999999;
+  --color-bright-500: #808080;
+  --color-bright-600: #666666;
+  --color-bright-700: #4d4d4d;
+  --color-bright-800: #333333;
+  --color-bright-900: #1a1a1a;
+  --color-bright-950: #0d0d0d;
+  --color-bright: #eaeaea;
+
+  --color-darker-50: #f3f1f1;
+  --color-darker-100: #e7e4e4;
+  --color-darker-200: #cfc9c9;
+  --color-darker-300: #b7aeae;
+  --color-darker-400: #9f9393;
+  --color-darker-500: #877878;
+  --color-darker-600: #6c6060;
+  --color-darker-700: #514848;
+  --color-darker-800: #363030;
+  --color-darker-900: #1b1818;
+  --color-darker-950: #0e0c0c;
+  --color-darker: #131111;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@layer base {
+  .btn {
+    height: 4rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    min-height: 4rem;
+    font-size: 1.125rem;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+  }
+
+  .btn:hover {
+    text-decoration-line: underline;
+  }
+
+  .outline-column {
+    width: calc(105vw / 5);
+  }
+
+  .outline-1 {
+    font-size: 18px;
+  }
+
+  .outline-2 {
+    font-size: 14px;
+    margin-left: 0.75rem;
+    margin-bottom: 2px;
+  }
+
+  .outline-3 {
+    font-size: 12px;
+    margin-left: 1.5rem;
+    margin-bottom: 1px;
+  }
+}
