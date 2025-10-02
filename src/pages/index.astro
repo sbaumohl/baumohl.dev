@@ -9,7 +9,7 @@ const posts = (await getCollection("blog")).sort(
 	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
 );
 
-const subheaderStyles = "text-2xl sm:text-4xl mb-4 sm:mt-12 mt-6";
+const subheaderStyles = "text-2xl sm:text-4xl mb-4 sm:mt-12 mt-6 inline-flex";
 ---
 
 <BasePage>
@@ -65,7 +65,14 @@ const subheaderStyles = "text-2xl sm:text-4xl mb-4 sm:mt-12 mt-6";
 				</button>
 			</div>
 		</div>
-		<h2 class={subheaderStyles}>Blog Posts</h2>
+		<h2 class={subheaderStyles}>
+			Blog Posts
+			<form action="/feed.xml" class="ml-1 flex">
+				<button>
+					<Icon name="square-rss-solid-full"/>
+				</button>
+			</form>
+		</h2>
 		<section class="flex flex-col gap-8 mb-16 p-1">
 			{
 				posts.reverse().map((post, _) => (

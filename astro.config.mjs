@@ -20,7 +20,8 @@ export default defineConfig({
 		tailwind(),
 		icon(),
 		playformCompress(),
-		// react(),
+		react(),
+		rss(),
 	],
 	redirects: {
 		"/blog": "/",

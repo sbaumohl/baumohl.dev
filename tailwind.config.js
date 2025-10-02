@@ -22,13 +22,13 @@ module.exports = {
           ...defaultTheme.fontFamily.mono,
         ],
       },
-      typography: {
-        Default: {
-          css: {
-            color: "#333",
-          },
-        },
-      },
+      // typography: {
+      //   Default: {
+      //     css: {
+      //       color: "#333",
+      //     },
+      //   },
+      // },
       colors: {
         bright: {
           50: "#f2f2f2",
