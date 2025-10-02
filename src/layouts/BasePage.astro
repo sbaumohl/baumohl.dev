@@ -4,17 +4,16 @@ import Footer from "../components/Footer.astro";
 import "@fontsource-variable/source-serif-4";
 
 interface BasePageProps {
-	title?: String,
-	description?: String,
-	ogtype?: String,
+	title?: String;
+	description?: String;
+	ogtype?: String;
 }
 
-const {title, description, ogtype }: BasePageProps = Astro.props;
+const { title, description, ogtype }: BasePageProps = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en" class="font-serif min-h-full h-100">
-
 	<head>
 		<BaseHead title={title} description={description} ogtype={ogtype} />
 	</head>
@@ -22,8 +21,6 @@ const {title, description, ogtype }: BasePageProps = Astro.props;
 		<main>
 			<slot />
 		</main>
-	</body>
-	
-	<!-- Footer -->
+	</body><!-- Footer -->
 	<Footer />
 </html>

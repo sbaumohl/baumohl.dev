@@ -1,11 +1,12 @@
 ---
 import { Icon } from "astro-icon/components";
 ---
+
 <a
-    class="underline inline-flex items-center whitespace-nowrap"
+	class="underline inline-flex items-center whitespace-nowrap"
 	rel="noopener noreferrer"
 	target="_blank"
-	{...Astro.props}><slot />
-    <Icon class="ml-[1px] pt-[1px] text-xs" name="fa-ext"/>
+	{...Astro.props}
+	><slot />
+	<Icon class="ml-px pt-px text-xs" name="fa-ext" />
 </a>
-

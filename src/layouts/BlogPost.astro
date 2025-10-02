@@ -4,52 +4,73 @@ import FormattedDate from "../components/FormattedDate.astro";
 import BasePage from "./BasePage.astro";
 import { Icon } from "astro-icon/components";
 
-type Props = CollectionEntry<"blog">["data"];
-const { title, description, pubDate, updatedDate, author } = Astro.props;
+type Props = {
+	data: CollectionEntry<"blog">["data"];
+	headings: { depth: number; slug: string; text: string }[];
+};
+const { title, description, pubDate, updatedDate, author, useOutline } = Astro.props.data;
+const headings = Astro.props.headings;
+const processedHeadings = headings.filter(h => h.depth <= 3).map(h => {
+	return {...h, tag: `h${h.depth}`, style: `outline-${h.depth}`};
+});
 ---
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<link
+	rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css"
+/>
 <BasePage title={title} description={description} ogtype="article">
-	<div class="sm:mt-20 mx-auto max-w-[700px] text-wrap mb-8">
-    <a
-    href="/"
-    class="inline-flex items-center text-text-400 hover:text-text font-normal text-base sm:text-lg group transition-colors duration-150 ease-in-out pl-3 sm:pl-4" 
-    aria-label="Go back to the previous page"
-  >
-    <Icon
-      name="angles-left-solid"
-      class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 transform transition-transform duration-200 ease-in-out group-hover:-translate-x-1"
-      aria-hidden="true"
-    />
-    <span class="hover:underline">Back</span>
-  </a>
-		<div class="p-4">
-			<h1 class="text-xl sm:text-4xl font-semibold">{title}</h1>
-			<h2 class="sm:text-lg font-semibold mt-4">
-				{description}
-			</h2>
-			<hr class="mt-1 mb-2 border-black" />
-			<div class="text-xs sm:text-lg mb-6 flex flex-row gap-x-2">
-				<span>Published <FormattedDate date={pubDate} /></span
-				>&middot;
-				{
-					updatedDate && (
-						<>
-							<span>
-								Updated{" "}
-								<FormattedDate date={updatedDate} />
-							</span>
-							<span>&middot;</span>
-						</>
-					)
-				}
-				<span>{author}</span>
+	<div class="grid grid-cols-10 gap-2 sm:mt-20">
+		<div class="hidden lg:block col-span-2 mt-16 min-w-100">
+			<div class:list={["md:mx-4", "fixed", "outline-column", "overflow-scroll", "max-h-screen", useOutline ? "block" : "hidden"]}>
+				<h1 class="font-bold text-xl mb-1">Outline</h1>
+					{processedHeadings.map(h => (
+						<h.tag class:list={[h.style]}>
+							<a class:list={["hover:font-bold", "duration-200"]} href={`#${h.slug}`}>{h.text}</a>
+						</h.tag>
+					))}
 			</div>
-			<article
-				class="prose text-black prose-neutral prose-sm sm:prose-base max-w-none text-wrap"
+		</div>
+		<div class="mx-auto max-w-[750px] text-wrap mb-8 col-span-10 md:col-span-6">
+			<a
+				href="/"
+				class="inline-flex items-center text-text-400 hover:text-text font-normal text-base sm:text-lg group transition-colors duration-150 ease-in-out pl-3 sm:pl-4"
+				aria-label="Go back to the previous page"
 			>
-				<slot />
-			</article>
+				<Icon
+					name="angles-left-solid"
+					class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 transform transition-transform duration-200 ease-in-out group-hover:-translate-x-1"
+					aria-hidden="true"
+				/>
+				<span class="hover:underline">Back</span>
+			</a>
+			<div class="p-4">
+				<h1 class="text-xl sm:text-4xl font-semibold">{title}</h1>
+				<h2 class="sm:text-lg font-semibold mt-4">
+					{description}
+				</h2>
+				<hr class="mt-1 mb-2 border-black" />
+				<div class="text-xs sm:text-lg mb-6 flex flex-row gap-x-2">
+					<span>Published <FormattedDate date={pubDate} /></span
+					>&middot;
+					{
+						updatedDate && (
+							<>
+								<span>
+									Updated <FormattedDate date={updatedDate} />
+								</span>
+								<span>&middot;</span>
+							</>
+						)
+					}
+					<span>{author}</span>
+				</div>
+				<article
+					class="prose text-black prose-neutral prose-sm sm:prose-base max-w-none text-wrap"
+				>
+					<slot />
+				</article>
+			</div>
 		</div>
 	</div>
 </BasePage>

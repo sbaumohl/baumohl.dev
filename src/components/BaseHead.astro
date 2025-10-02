@@ -13,12 +13,11 @@ interface Props {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 // fallback to site constants if none provided
-const { 
-	title = SITE_TITLE, 
-	description = SITE_DESCRIPTION, 
-	ogType = "website" 
+const {
+	title = SITE_TITLE,
+	description = SITE_DESCRIPTION,
+	ogType = "website",
 } = Astro.props;
-
 ---
 
 <!-- Global Metadata -->
