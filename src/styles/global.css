@@ -1,21 +1,36 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin '@tailwindcss/aspect-ratio';
 @plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 
+@layer components {
+  .prose pre {
+    @apply overflow-y-scroll max-h-100;
+    @apply overflow-x-scroll;
+    max-width: 93vw;
+    /* width:; */
+  }
+
+  /* optional cleanup for inline code formatting */
+  .prose code::before,
+  .prose code::after {
+    content: none;
+  }
+}
+
 @theme {
   --font-serif:
-    'Source Serif 4 Variable', ui-serif, Georgia, Cambria, 'Times New Roman',
+    "Source Serif 4 Variable", ui-serif, Georgia, Cambria, "Times New Roman",
     Times, serif;
   --font-sans:
-    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono:
-    ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
     DejaVu Sans Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
+    "Liberation Mono", "Courier New", monospace;
 
   --color-bright-50: #f2f2f2;
   --color-bright-100: #e6e6e6;
