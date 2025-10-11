@@ -44,35 +44,7 @@ const subheaderStyles = "text-2xl sm:text-4xl mb-4 sm:mt-12 mt-6 inline-flex";
 				>
 			</li>
 		</ul>
-		<h2 class={subheaderStyles}>Socials</h2>
-		<div class="flex flex-row items-center justify-center gap-x-2">
-			<form action="https://www.linkedin.com/in/sam-baumohl09/">
-				<button class="btn">
-					<Icon name="linkedin" />
-					LinkedIn
-				</button>
-			</form>
-			<form action="https://github.com/sbaumohl/">
-				<button class="btn">
-					<Icon name="github" />
-					Github
-				</button>
-			</form>
-			<div>
-				<button class="btn" onclick="email_modal.showModal()">
-					<Icon name="mail" />
-					Email
-				</button>
-			</div>
-		</div>
-		<h2 class={subheaderStyles}>
-			Blog Posts
-			<form action="/feed.xml" class="ml-1 flex">
-				<button>
-					<Icon name="square-rss-solid-full"/>
-				</button>
-			</form>
-		</h2>
+		<h2 class={subheaderStyles}>Blog Posts</h2>
 		<section class="flex flex-col gap-8 mb-16 p-1">
 			{
 				posts.reverse().map((post, _) => (
