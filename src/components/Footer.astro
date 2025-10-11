@@ -2,21 +2,23 @@
 import { NAME } from "../consts";
 import { Icon } from "astro-icon/components";
 const today = new Date();
+
+
 ---
 
 <footer class="sm:text-lg font-semibold mt-4 px-1 py-4 text-center">
 	<div class="flex flex-row items-center justify-center gap-x-3 mb-3">
 		<a href="https://www.linkedin.com/in/sam-baumohl09/" class="text-darker-500 hover:text-darker transition-colors" aria-label="LinkedIn profile">
-			<Icon name="linkedin" class="w-6 h-6" />
+			<Icon name="linkedin" class="w-8 h-8" />
 		</a>
 		<a href="https://github.com/sbaumohl/" class="text-darker-500 hover:text-darker transition-colors" aria-label="GitHub profile">
-			<Icon name="github" class="w-6 h-6" />
+			<Icon name="github" class="w-8 h-8" />
 		</a>
 		<button onclick="email_modal.showModal()" class="text-darker-500 hover:text-darker transition-colors" aria-label="Email address">
-			<Icon name="mail" class="w-6 h-6" />
+			<Icon name="mail" class="w-8 h-8" />
 		</button>
 		<a href="/feed.xml" class="text-darker-500 hover:text-darker transition-colors" aria-label="RSS feed">
-			<Icon name="square-rss-solid-full" class="w-6 h-6" />
+			<Icon name="square-rss-solid-full" class="w-8 h-8" />
 		</a>
 	</div>
 	<div>
