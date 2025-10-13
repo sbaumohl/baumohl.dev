@@ -3,25 +3,25 @@ import { NAME } from "../consts";
 import { Icon } from "astro-icon/components";
 const today = new Date();
 
-
+const iconStyles = "text-darker-500 hover:text-darker transition-colors";
 ---
 
-<footer class="sm:text-lg font-semibold mt-4 px-1 py-4 text-center">
-	<div class="flex flex-row items-center justify-center gap-x-3 mb-3">
-		<a href="https://www.linkedin.com/in/sam-baumohl09/" class="text-darker-500 hover:text-darker transition-colors" aria-label="LinkedIn profile">
-			<Icon name="linkedin" class="w-8 h-8" />
+<footer class="sm:text-lg font-semibold mt-12 px-4 py-8 text-center border-t border-darker-200">
+	<div class="flex flex-row items-center justify-center gap-x-6 mb-6">
+		<a href="https://www.linkedin.com/in/sam-baumohl09/" target="_blank" class={iconStyles} aria-label="LinkedIn profile">
+			<Icon name="linkedin" class="w-9 h-9" />
 		</a>
-		<a href="https://github.com/sbaumohl/" class="text-darker-500 hover:text-darker transition-colors" aria-label="GitHub profile">
-			<Icon name="github" class="w-8 h-8" />
+		<a href="https://github.com/sbaumohl/" target="_blank" class={iconStyles} aria-label="GitHub profile">
+			<Icon name="github" class="w-9 h-9" />
 		</a>
-		<button onclick="email_modal.showModal()" class="text-darker-500 hover:text-darker transition-colors" aria-label="Email address">
-			<Icon name="mail" class="w-8 h-8" />
+		<button onclick="email_modal.showModal()" class={iconStyles} aria-label="Email address">
+			<Icon name="mail" class="w-9 h-9" />
 		</button>
-		<a href="/feed.xml" class="text-darker-500 hover:text-darker transition-colors" aria-label="RSS feed">
-			<Icon name="square-rss-solid-full" class="w-8 h-8" />
+		<a href="/feed.xml" class={iconStyles}  target="_blank" aria-label="RSS feed">
+			<Icon name="square-rss-solid-full" class="w-9 h-9" />
 		</a>
 	</div>
-	<div>
+	<div class="text-darker-600">
 		&copy; {today.getFullYear()}
 		{" " + NAME}. All rights reserved.
 	</div>

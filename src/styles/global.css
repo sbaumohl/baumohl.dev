@@ -5,19 +5,34 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer utilities {
+  .prose {
+    @apply md:text-lg text-base;
+  }
+  .prose hr {
+    @apply mb-4;
+    @apply mt-1;
+  }
+
+  .prose li {
+    margin: 0;
+  }
+
+  .prose code {
+    font-size: 12px;
+  }
+}
+
 @layer components {
   .prose pre {
     @apply overflow-y-scroll max-h-100;
     @apply overflow-x-scroll;
     max-width: 93vw;
-    /* width:; */
   }
+}
 
-  /* optional cleanup for inline code formatting */
-  .prose code::before,
-  .prose code::after {
-    content: none;
-  }
+@utility prose {
+  --tw-prose-bullets: var(--color-darker-950);
 }
 
 @theme {
