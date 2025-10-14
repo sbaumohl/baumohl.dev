@@ -73,18 +73,4 @@ const posts = (await getCollection("blog")).sort(
 		</section>
 	</div>
 </BasePage>
-<dialog id="email_modal" class="backdrop:bg-black/50 bg-transparent p-0 max-w-none w-full h-full">
-	<div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 max-w-md mx-auto mt-20 text-lg border border-darker-200 animate-in fade-in duration-200">
-		<form method="dialog">
-			<button
-				class="absolute right-3 top-3 w-9 h-9 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-all duration-200 hover:rotate-90"
-				>✕</button
-			>
-		</form>
-		<h3 class="text-2xl font-bold mb-4">Email Address</h3>
-		<p class="py-4 text-xl">sam (at) baumohl (dot) dev</p>
-		<p class="text-sm text-darker-600">
-			You can email me using <a class="underline hover:text-darker-900 transition-colors" href="/pgp">PGP</a>
-		</p>
-	</div>
-</dialog>
+
