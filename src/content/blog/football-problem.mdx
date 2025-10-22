@@ -34,7 +34,7 @@ At most, we have 32 teams, and we want to compute the existence of a Hamiltonian
 
 ---
 
-My solution was to use a SAT solver. What's a SAT solver? It takes in giant boolean expressions in the form like "(A or B) and (B or C)" and spits out states for all the variables which lead to the entire expression returning true. The nice thing is that many computationally intractable problems could be turned into giant boolean satisfiability problems. I landed on a python SAT solver called [pysat](https://pysathq.github.io/), and quickly wrote code to load all regular season scores, build a graph, and find a Hamiltonian cycle. I followed the reduction from [here](https://www.csie.ntu.edu.tw/~lyuu/complexity/2011/20111018.pdf).
+My solution was to use a SAT solver. What's a SAT solver? It takes in giant boolean expressions in the form like "(A or B) and (B or C)" and spits out states for all the variables which lead to the entire expression returning true. The nice thing is that many computationally intractable problems could be turned into giant boolean satisfiability problems. I landed on a python SAT solver called [pysat](https://pysathq.github.io/), and quickly wrote code that loads all regular season scores, builds a graph, and finds a Hamiltonian cycle. I followed the reduction from [here](https://www.csie.ntu.edu.tw/~lyuu/complexity/2011/20111018.pdf).
 
 # Results
 
@@ -51,7 +51,7 @@ To my surprise, nearly every year without a perfect losing or winning team admit
 - 2008 (Lions lost every game)
 - 2017 (Browns lost every game)
 
-I've listed every Sircle of Suck below. I've done my best to double check the accuracy of everything, but if you notice an error, please let me know.
+I've listed every Circle of Suck below. I've done my best to double check the accuracy of everything, but if you notice an error, please let me know.
 
 ## Postscript
 
