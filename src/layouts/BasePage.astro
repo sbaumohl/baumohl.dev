@@ -2,6 +2,9 @@
 import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import "@fontsource-variable/source-serif-4";
+import sourceSerif4 from "@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2?url";
+
+
 
 interface BasePageProps {
 	title?: String;
@@ -16,6 +19,7 @@ const { title, description, ogtype }: BasePageProps = Astro.props;
 <html lang="en" class="font-serif min-h-full h-100">
 	<head>
 		<BaseHead title={title} description={description} ogtype={ogtype} />
+		<link rel="preload" as="font" type="font/woff2" href={sourceSerif4} crossorigin="anonymous"/>
 	</head>
 	<body class="">
 		<main>
