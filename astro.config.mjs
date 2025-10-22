@@ -13,6 +13,7 @@ import tailwindcss from "@tailwindcss/vite";
 // https://astro.build/config
 export default defineConfig({
   site: "https://baumohl.dev",
+  prefetch: true,
 
   integrations: [
     mdx({
@@ -38,4 +39,3 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 });
-

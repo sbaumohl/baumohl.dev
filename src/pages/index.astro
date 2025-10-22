@@ -48,7 +48,7 @@ const posts = (await getCollection("blog")).sort(
 		<section class="flex flex-col gap-6 mb-16">
 			{
 				posts.reverse().map((post, _) => (
-					<a href={`/blog/${post.slug}/`} class="group">
+					<a href={`/blog/${post.slug}/`} class="group" data-astro-prefetch="hover">
 						<article class="flex flex-col p-6 border border-solid border-darker-300 rounded-lg hover:border-darker-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-darker-50">
 							<h3 class="font-bold text-xl sm:text-2xl mb-3 group-hover:text-darker-900 transition-colors">
 								{post.data.title}
