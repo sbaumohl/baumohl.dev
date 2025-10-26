@@ -22,7 +22,7 @@ const processedHeadings = headings.filter(h => h.depth <= 3).map(h => {
 <BasePage title={title} description={description} ogtype="article">
 	<div class="grid grid-cols-10 gap-2 sm:mt-20">
 		<div class="hidden lg:block col-span-2 mt-16 min-w-100">
-			<div class:list={["md:mx-4", "fixed", "outline-column", "overflow-scroll", "max-h-screen", useOutline ? "block" : "hidden"]}>
+			<div class:list={["md:mx-4", "fixed", "outline-column", "max-h-screen", useOutline ? "block" : "hidden"]}>
 				<h1 class="font-bold text-xl mb-1">Outline</h1>
 					{processedHeadings.map(h => (
 						<h.tag class:list={[h.style]}>
@@ -31,7 +31,7 @@ const processedHeadings = headings.filter(h => h.depth <= 3).map(h => {
 					))}
 			</div>
 		</div>
-		<div class="mx-auto max-w-[750px] text-wrap mb-8 col-span-10 md:col-span-6 md:px-0 px-4">
+		<div class="mx-auto max-w-[750px] text-wrap mb-8 col-span-10 lg:col-span-6 md:px-0 px-4">
 			<a
 				href="/"
 				class="inline-flex items-center text-darker-600 hover:text-darker-900 font-normal text-base sm:text-lg group transition-colors"
