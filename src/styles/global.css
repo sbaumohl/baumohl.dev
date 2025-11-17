@@ -3,8 +3,6 @@
 @plugin '@tailwindcss/aspect-ratio';
 @plugin '@tailwindcss/typography';
 
-/* @custom-variant dark (&:is(.dark *)); */
-
 @layer utilities {
   .prose {
     @apply md:text-lg text-base;
