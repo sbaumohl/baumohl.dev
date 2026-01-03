@@ -1,0 +1,16 @@
+---
+interface Props {
+	summary: string;
+}
+
+const { summary } = Astro.props;
+---
+<details class="group border border-solid border-darker-300 rounded-lg pb-1">
+	<summary class="p-3 bg-darker-50 rounded-lg cursor-pointer list-none flex items-center gap-2 hover:bg-darker-100 transition-colors">
+		<span class="text-darker-600 transition-transform group-open:rotate-90">▶</span>
+		{summary}
+	</summary>
+	<div class="p-3">
+		<slot/>
+	</div>
+</details>
