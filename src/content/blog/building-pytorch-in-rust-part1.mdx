@@ -1,0 +1,121 @@
+---
+title: "Building PyTorch in Rust to Force Myself to Learn Rust"
+description: "Part 1: Tensors, Strides, NonNull, and aliases"
+pubDate: "February 23, 2026"
+---
+
+[PyTorch](https://pytorch.org/) is pretty cool. In the midst of the current AI craze, it's easy to lose sight of the really cool lower-level components that make modern ML possible. I also think it's important to learn how these frameworks operate under the hood because it might enable you to discover performance optimizations, understand ML frameworks' idiosyncrasies and differences, or just to satisfy your own curiosity. For this reason, I decided to reimplement a basic version of PyTorch, with support for strided tensors on CUDA and Cpu, and autograd, the automatic differentiation core that enables users to easily run backpropagation. Time permitting, I'll even look at providing a basic python interface.
+
+Additionally, I've been looking for a good opportunity to learn more Rust and make something cool with it. Rust's excellent tooling, macro system, and speed make it an excellent candidate to replace the C++ backend in this project. Its thorns (\*cough\* borrow checker \*cough\*) provide an interesting challenge. This tutorial will be both an intermediate level explanation of how PyTorch works and an intermediate exploration of the Rust programming language. I'm certainly no expert in either, but I hope this tutorial provides some interesting breadcrumbs to someone following a similar path.
+
+One last note: while I used GenAI tools to help with making visuals, writing docs, and debugging, I refrained from using any agentic coding tool (Claude Code) for this project.
+
+---
+
+## (Strided) Tensors
+
+Representing [Tensors](https://en.wikipedia.org/wiki/Tensor) with arbitrary dimensions and arbitrary shapes seems like a difficult problem at first glance, but its solution is actually quite elegant and intuitive. PyTorch and similar scientific computing packages like NumPy use strided tensors, which are essentially views on top of a piece of (optionally) shared memory. A strided tensor has five properties, and these will be the starting place of our own implementation:
+	1. **Storage**: A struct containing the exact memory address and length to a piece of allocated memory.
+	2. **Shape**: A small array that describes the number of elements in each dimension of the tensor
+	3. **_Stride_**: A small array that describes the number of elements to skip when iterating over each dimension
+	4. **dtype**: An enum indicating what datatype is contained in the Tensor. This could be `float32`, a `long`, or even a `bfloat16`.
+	5. **Offset**: Where to begin reading from the Storage.
+
+The stride is what makes this, to me, quite magical. Let's use an example of a three by three matrix represented in memory. Here, you'd have nine total elements. Let's assume this is a 2d stack-array, and that all nine elements are stored sequentially in memory. The difference between having a 3x3 matrix and a flat nine element array is just a difference in interpretation. For this example, let the backing flat array be called `storage`.
+
+![Graphic showing strided indexing](/images/crabtorch_0_stride.png)
+
+Then, we just use the stride array to properly index through this flat `storage` array. This makes sense if you've ever worked with 2d-arrays in almost any programming language.
+
+What's really cool is that you can manipulate the stride array and create completely different views on the same flat array. Consider `tensor.t()`, which returns the transpose of the tensor. We _could_ create a new backing array and copy them over to create this matrix. Or, we could just copy a pointer to the same array and modify the stride array as illustrated. Creating new views from indexes requires creating new offsets and shape vectors rather than fully allocating a new Tensor.
+
+![Graphic showing strided indexing on a transposed tensor](/images/crabtorch_1_transpose.png)
+
+Consider some operations that are actually quite simple like [`.unsqueeze()`](https://docs.pytorch.org/docs/stable/generated/torch.unsqueeze.html), [`.squeeze()`](https://docs.pytorch.org/docs/main/generated/torch.squeeze.html), or [`.view()`](https://docs.pytorch.org/docs/stable/generated/torch.Tensor.view.html). None of these actually requires the mutation of the underlying data, and they can be accomplished by creating a new modified shape, stride, or offset. 
+
+### `NonNull<u8>` and `Rc`
+To accomplish this, we will decouple the Tensor from the underlying memory. We'll need to build two structs: one for maintaining the underlying raw storage, and the actual tensor holding the stride, shape, and type information. We want to enable many tensors to point to the same raw storage container. Rust's alias rules disallow multiple `&mut` references to the same struct. More formally, the [Rust aliasing rules](https://doc.rust-lang.org/nomicon/aliasing.html) allow a single mutable reference or multiple immutable references, exclusively. This type of shared, multiple ownership isn't allowed by aliasing alone.
+
+The solution is to use a reference counter or [`Rc<T>`](https://doc.rust-lang.org/book/ch15-04-rc.html), which brings back reference counting for a specified object, and automatically drops the inner struct once the reference count hits zero.
+
+![Image showing how multiple Tensors point to one Untyped Storage struct](/images/crabtorch_2_structs.png)
+
+Additionally, we'll use a [`NonNull<u8>`](https://doc.rust-lang.org/beta/std/ptr/struct.NonNull.html) instead of a `*mut T`, which enables some nice compiler optimizations at the expense of some type shenanigans. Because we will treat the underlying storage container as untyped storage with raw bytes, we will have to do some `unsafe` casting.
+
+
+```rust
+#[derive(Debug)]
+pub struct UntypedStorage {
+	ptr: NonNull<u8>,
+	layout: Layout,
+	n_bytes: usize,
+	//...
+}
+
+#[derive(Default, Debug)]
+pub struct Tensor {
+    shape: Vec<usize>,
+    stride: Vec<usize>,
+    offset: usize,
+    dtype: DataType,
+    _storage: Rc<UntypedStorage>,
+    _dispatch_keys: DispatchKeySet,
+}
+```
+
+We'll make use of the [memory allocation API](https://doc.rust-lang.org/std/alloc/index.html) to allocate and deallocate the tensor storage.
+
+```rust
+impl UntypedStorage {
+    pub fn with_capacity(bytes: usize) -> Self {
+        let layout = Layout::array::<u8>(bytes)
+            .expect("Could not construct layout for UntypedStorage construction!");
+
+        UntypedStorage {
+            ptr: NonNull::new(unsafe { alloc(layout) })
+                .expect("Could not construct NonNull<u8> with capacity!"),
+            layout,
+            n_bytes: bytes,
+            version: 0,
+        }
+    }
+
+    pub fn with_capacity_cleared(bytes: usize) -> Self {
+        let layout = Layout::array::<u8>(bytes)
+            .expect("Could not construct layout for UntypedStorage construction!");
+
+        UntypedStorage {
+            ptr: NonNull::new(unsafe { alloc_zeroed(layout) })
+                .expect("Could not construct NonNull<u8> with capacity!"),
+            layout,
+            n_bytes: bytes,
+            version: 0,
+        }
+    }
+}
+```
+
+We also need to implement deallocation behavior that triggers when the storage is dropped by its `Rc`. In rust, implementing destruction behavior comes from implementing the `Drop` trait. Side note: If you're building a storage container and the inner type has properties that require recursive dropping, you'll have to call that here. I'm making the active assumption that we will not need that: 
+
+```rust
+impl Drop for UntypedStorage {
+    fn drop(&mut self) {
+        if self.n_bytes == 0 {
+            return;
+        }
+
+        unsafe {
+            dealloc(self.ptr.as_ptr(), self.layout);
+        }
+    }
+}
+```
+
+Side note: this is similar to how [`Vec` works under the hood](https://doc.rust-lang.org/src/alloc/raw_vec/mod.rs.html#85). It uses a `Unique` wrapper, which has slightly stronger guarantees than a `NonNull`.
+
+As we see, using the allocation apis requires `unsafe`, which allows us to momentarily break the compile-time memory safety guarantees that regular rust provides. As we continue to build functionality, we'll have to be careful to maintain the memory-safety features and contracts through our implementation. 
+
+
+---
+See also (and credits to): [Edward Yang's blog on PyTorch Internals](https://blog.ezyang.com/2019/05/pytorch-internals)
+

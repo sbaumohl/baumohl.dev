@@ -10,6 +10,7 @@
   .prose hr {
     @apply mb-4;
     @apply mt-1;
+    @apply border-black;
   }
 
   .prose li {

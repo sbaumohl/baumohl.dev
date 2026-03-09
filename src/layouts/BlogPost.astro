@@ -49,16 +49,16 @@ const processedHeadings = headings.filter(h => h.depth <= 3).map(h => {
 				<p class="mb-3 text-base sm:text-lg leading-relaxed">
 					{description}
 				</p>
-				<div class="text-sm text-darker-600 mb-6 flex flex-row gap-x-2">
+				<div class="text-xs md:text-sm text-darker-600 mb-6 flex flex-col md:flex-row gap-x-2">
 					<span>Published <FormattedDate date={pubDate} /></span
-					>&middot;
+					><span class="hidden md:inline">&middot;</span>
 					{
 						updatedDate && (
 							<>
 								<span>
 									Updated <FormattedDate date={updatedDate} />
 								</span>
-								<span>&middot;</span>
+								<span class="hidden md:inline">&middot;</span>
 							</>
 						)
 					}
