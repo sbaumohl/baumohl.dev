@@ -17,33 +17,17 @@ const posts = (await getCollection("blog")).sort(
 		<div class="my-8 sm:my-12">
 			<h1 class="text-5xl sm:text-6xl mb-6 font-bold tracking-tight">Sam Baumohl</h1>
 			<p class="mb-3 text-base sm:text-lg leading-relaxed">
-				I am a student at the University of Wisconsin-Madison studying
-				Computer Sciences and Mathematics. I'm interested in software
+				I am an incoming software engineer at Netflix. I'm interested in software
 				development, machine learning/AI, and technology policy. I like to
 				read, solve problems, and work on various side projects, some of
-				which I'll post here. Right now, I'm:
+				which I'll post here. 
 			</p>
-			<ul class="ml-6 text-base sm:text-lg list-disc">
-				<li>
-					trying to survive the <a
-						class="underline hover:text-darker-900 transition-colors"
-						href="/blog/uw-madison-courses/">CS major</a
-					>
-				</li>
-				<li>
-					an operations member of the&nbsp;<CustomLink
-						href="https://waisi.org/"
-						>Wisconsin AI Safety Initiative (WAISI)</CustomLink
-					>
-				</li>
-				<li>a researcher for <CustomLink href="https://xrisk.uchicago.edu/">UChicago XLab</CustomLink></li>
-			</ul>
 		</div>
 		<h2 class="text-3xl sm:text-4xl mb-8 sm:mb-10 font-bold tracking-tight sm:mt-16 mt-10">Blog Posts</h2>
 		<section class="flex flex-col gap-6 mb-16">
 			{
 				posts.reverse().map((post, _) => (
-					<a href={`/blog/${post.slug}/`} class="group" data-astro-prefetch="hover">
+					<a href={`/blog/${post.id}/`} class="group" data-astro-prefetch="hover">
 						<article class="flex flex-col p-6 border border-solid border-darker-300 rounded-lg hover:border-darker-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white hover:bg-darker-50">
 							<h3 class="font-bold text-xl sm:text-2xl mb-3 group-hover:text-darker-900 transition-colors">
 								{post.data.title}
