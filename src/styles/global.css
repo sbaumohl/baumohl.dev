@@ -5,7 +5,7 @@
 
 @layer utilities {
   .prose {
-    @apply md:text-lg text-base;
+    @apply text-base;
   }
   .prose hr {
     @apply mb-4;
