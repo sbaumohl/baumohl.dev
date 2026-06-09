@@ -71,6 +71,10 @@
   --color-darker-900: #1b1818;
   --color-darker-950: #0e0c0c;
   --color-darker: #131111;
+
+  --color-primary: rgb(119 166 241);
+  --color-secondary: rgb(155 146 224);
+  --color-accent: rgb(112 97 229);
 }
 
 /*
@@ -89,9 +93,7 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
   }
-}
 
-@layer base {
   .btn {
     height: 4rem;
     padding-left: 1.5rem;
