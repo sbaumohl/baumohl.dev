@@ -37,6 +37,7 @@ jobs:
               env:
                   SSH_PRIVATE_KEY: ${{ secrets.SSHKEY }}
                   SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+                  DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
                   REMOTE_HOST: ${{ secrets.HOST }}
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   REMOTE_PORT: ${{ secrets.PORT }}
@@ -51,4 +52,4 @@ jobs:
 
                   rsync -rltz --delete --exclude='.well-known/' \
                       -e "ssh -i ~/.ssh/deploy_key -p ${REMOTE_PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
-                      dist/ "${REMOTE_USER}@${REMOTE_HOST}:/var/www/baumohl.dev/"
+                      dist/ "${REMOTE_USER}@${REMOTE_HOST}:${DEPLOY_PATH}"
