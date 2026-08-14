@@ -3,32 +3,52 @@ name: deployment
 on:
     push:
         branches: [main]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: deploy-production
+    cancel-in-progress: false
 
 jobs:
     deploy:
         runs-on: ubuntu-latest
+        environment: production
+        timeout-minutes: 10
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v1
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
               with:
                   node-version: 22
+                  cache: npm
 
-            - name: Install Node Dependencies
-              run: npm ci -f
+            - run: npm ci
 
-            - name: Build Production
-              run: npm run build
+            - run: npm run build
 
-            - name: Deploy to Server
-              uses: easingthemes/ssh-deploy@main
+            - name: Deploy to server
+              shell: bash
               env:
                   SSH_PRIVATE_KEY: ${{ secrets.SSHKEY }}
-                  ARGS: "-rltgoDzvO"
-                  SOURCE: dist/
+                  SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
                   REMOTE_HOST: ${{ secrets.HOST }}
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   REMOTE_PORT: ${{ secrets.PORT }}
-                  TARGET: /var/www/baumohl.dev
+              run: |
+                  set -euo pipefail
+
+                  install -d -m 700 ~/.ssh
+                  printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+                  chmod 600 ~/.ssh/deploy_key
+                  printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+                  chmod 600 ~/.ssh/known_hosts
+
+                  rsync -rltz --delete --exclude='.well-known/' \
+                      -e "ssh -i ~/.ssh/deploy_key -p ${REMOTE_PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+                      dist/ "${REMOTE_USER}@${REMOTE_HOST}:/var/www/baumohl.dev/"
