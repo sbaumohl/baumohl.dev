@@ -5,6 +5,7 @@ import sitemap from "@astrojs/sitemap";
 import react from "@astrojs/react";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import { unified } from "@astrojs/markdown-remark";
 
 import playformCompress from "@playform/compress";
 
@@ -31,8 +32,10 @@ export default defineConfig({
   },
 
   markdown: {
-    remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
+    processor: unified({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [rehypeKatex],
+    }),
   },
 
   vite: {
