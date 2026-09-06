@@ -148,8 +148,8 @@
 }
 @layer base {
   body { background: var(--paper); }
-  a { color: var(--wine); text-underline-offset: .18em; }
-  a:hover { color: var(--ink); }
+  a { color: var(--ink); text-underline-offset: .18em; }
+  a:is(:hover, :focus-visible) { color: var(--wine); }
   :focus-visible { outline: 2px solid var(--wine); outline-offset: 4px; }
   ::selection { background: #e5ccc1; color: var(--ink); }
   [hidden] { display: none !important; }
@@ -157,9 +157,11 @@
 .site-header { max-width: 700px; width: calc(100% - 32px); margin: 24px auto 0; }
 .site-header.wide { max-width: 1040px; width: min(1040px, calc(100% - 96px)); }
 .site-mark { color: var(--ink); }
-.key-link { display: inline-flex; align-items: center; min-height: 24px; color: var(--wine); }
-.prose { --tw-prose-links: var(--wine); }
-.prose a:hover { color: var(--ink); }
+.key-link { display: inline-flex; align-items: center; min-height: 24px; color: var(--ink); }
+.prose { --tw-prose-links: var(--ink); }
+main p a, .prose a { text-decoration-color: #b4a89b; text-decoration-thickness: 1px; }
+main a:is(:hover, :focus-visible) { color: var(--wine); text-decoration-color: currentColor; }
+.prose a:is(:hover, :focus-visible) { color: var(--wine); text-decoration-color: currentColor; }
 .prose pre { max-width: 100%; }
 .prose .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
 .prose table { display: block; overflow-x: auto; }
@@ -349,13 +351,13 @@
 .action-link {
   font-family: var(--font-sans);
   font-size: 12px;
-  color: var(--wine);
+  color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
-.action-link:hover {
-  color: var(--ink);
+.action-link:is(:hover, :focus-visible) {
+  color: var(--wine);
 }
 
 .copy-status {

@@ -8,7 +8,7 @@ const posts = (await getCollection("blog")).sort(
 	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
 );
 
-const iconStyles = "text-darker-500 hover:text-darker transition-colors";
+const iconStyles = "text-darker-500 hover:text-accent transition-colors";
 
 ---
 
@@ -42,7 +42,7 @@ const iconStyles = "text-darker-500 hover:text-darker transition-colors";
 		<section class="flex flex-col gap-2 mb-16">
 			{
 				posts.reverse().map((post, _) => (
-					<a href={`/blog/${post.id}/`} class="hover:underline hover:text-darker-700" data-astro-prefetch="hover">
+					<a href={`/blog/${post.id}/`} class="hover:underline hover:text-accent" data-astro-prefetch="hover">
 						<FormattedDate date={post.data.pubDate} /> &middot; {post.data.title} ~ {post.data.description}
 					</a>
 				))
