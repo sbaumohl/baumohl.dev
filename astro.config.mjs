@@ -28,7 +28,7 @@ export default defineConfig({
 
   redirects: {
     "/blog": "/",
-    "/pgp": "/blog/pgp-key/",
+    "/blog/pgp-key": "/pgp/",
   },
 
   markdown: {
