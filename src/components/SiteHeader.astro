@@ -1,0 +1,12 @@
+---
+interface Props {
+  wide?: boolean;
+}
+const { wide = false } = Astro.props;
+---
+
+<header class:list={["site-header", { wide }]}>
+  <a class="site-mark" href="/" aria-label="Sam Baumohl — home"
+    >sb<span aria-hidden="true">.</span></a
+  >
+</header>

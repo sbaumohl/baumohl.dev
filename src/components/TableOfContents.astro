@@ -1,0 +1,19 @@
+---
+interface Props {
+  headings: { depth: number; slug: string; text: string }[];
+}
+const { headings } = Astro.props;
+const minDepth = Math.min(...headings.map((heading) => heading.depth));
+---
+
+<nav class="toc" aria-label="Table of contents">
+  <ol>
+    {
+      headings.map((heading) => (
+        <li style={`--depth: ${heading.depth - minDepth}`}>
+          <a href={`#${heading.slug}`}>{heading.text}</a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>

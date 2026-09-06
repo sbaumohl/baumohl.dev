@@ -1,0 +1,51 @@
+---
+import BasePage from "../layouts/BasePage.astro";
+import BackLink from "../components/BackLink.astro";
+import publicKey from "../../public/pgp-key.asc?raw";
+---
+
+<BasePage
+  title="PGP Public Key | Sam Baumohl"
+  description="Sam Baumohl's PGP public key."
+>
+  <div class="page-shell utility-page">
+    <BackLink />
+    <header class="my-8">
+      <h1 class="text-4xl sm:text-6xl mb-6 font-bold tracking-tight">
+        PGP Public Key
+      </h1>
+      <p>Download my public key or copy it below.</p>
+    </header>
+    <div class="key-actions">
+      <a href="/pgp-key.asc" download class="action-link"
+        >Download public key <span aria-hidden="true">↓</span></a
+      >
+      <button type="button" id="copy-key" class="action-link" hidden
+        >Copy to clipboard</button
+      >
+      <span id="copy-status" class="copy-status" role="status"></span>
+    </div>
+    <pre
+      class="key-block"
+      tabindex="0"
+      aria-label="PGP public key"><code id="public-key">{publicKey}</code></pre>
+  </div>
+</BasePage>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>("#copy-key");
+  const status = document.querySelector<HTMLElement>("#copy-status");
+  const key = document.querySelector<HTMLElement>("#public-key");
+  if (button && status && key && navigator.clipboard) {
+    button.hidden = false;
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(key.textContent ?? "");
+        status.textContent = "Copied!";
+      } catch {
+        status.textContent =
+          "Couldn’t copy. Select the key below or download it.";
+      }
+    });
+  }
+</script>

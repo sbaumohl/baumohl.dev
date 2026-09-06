@@ -3,62 +3,70 @@ import type { CollectionEntry } from "astro:content";
 import FormattedDate from "../components/FormattedDate.astro";
 import BasePage from "./BasePage.astro";
 import BackLink from "../components/BackLink.astro";
+import TableOfContents from "../components/TableOfContents.astro";
 
 type Props = {
-	data: CollectionEntry<"blog">["data"];
-	headings: { depth: number; slug: string; text: string }[];
+  data: CollectionEntry<"blog">["data"];
+  headings: { depth: number; slug: string; text: string }[];
+  minutes: number;
 };
-const { title, description, pubDate, updatedDate, author, useOutline } = Astro.props.data;
-const headings = Astro.props.headings;
-const processedHeadings = headings.filter(h => h.depth <= 3).map(h => {
-	return {...h, tag: `h${h.depth}`, style: `outline-${h.depth}`};
-});
+const { data, headings, minutes } = Astro.props;
+const { title, description, pubDate, updatedDate, author, useOutline } = data;
+const outline = headings.filter((heading) => heading.depth <= 3);
+const showOutline = useOutline && outline.length > 0;
 ---
 
-<link
-	rel="stylesheet"
-	href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css"
-/>
-<BasePage title={title} description={description} ogtype="article">
-	<div class="grid grid-cols-10 gap-2 sm:mt-20">
-		<div class="hidden lg:block col-span-2 mt-16 min-w-100">
-			<div class:list={["md:mx-4", "fixed", "outline-column", "max-h-screen", useOutline ? "block" : "hidden"]}>
-				<h1 class="font-bold text-xl mb-1">Outline</h1>
-					{processedHeadings.map(h => (
-						<h.tag class:list={[h.style]}>
-							<a class:list={["hover:font-bold", "duration-200"]} href={`#${h.slug}`}>{h.text}</a>
-						</h.tag>
-					))}
-			</div>
-		</div>
-		<div class="mx-auto w-full max-w-[750px] text-wrap mb-8 col-span-10 lg:col-span-6 md:px-0 px-4">
-			<BackLink />
-			<div class="my-8 sm:my-12">
-				<h1 class="text-4xl sm:text-6xl mb-6 font-bold tracking-tight">{title}</h1>
-				<p class="mb-3 text-base leading-relaxed">
-					{description}
-				</p>
-				<div class="text-xs md:text-sm text-darker-600 mb-6 flex flex-col md:flex-row gap-x-2">
-					<span>Published <FormattedDate date={pubDate} /></span
-					><span class="hidden md:inline">&middot;</span>
-					{
-						updatedDate && (
-							<>
-								<span>
-									Updated <FormattedDate date={updatedDate} />
-								</span>
-								<span class="hidden md:inline">&middot;</span>
-							</>
-						)
-					}
-					<span>{author}</span>
-				</div>
-				<article
-					class="prose text-black max-w-none text-wrap"
-				>
-					<slot />
-				</article>
-			</div>
-		</div>
-	</div>
+<BasePage
+  title={`${title} | Sam Baumohl`}
+  description={description}
+  ogtype="article"
+  wide
+>
+  <link
+    slot="head"
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css"
+  />
+  <div class="page-shell article-page">
+    <BackLink />
+    <header class="article-header">
+      <p class="eyebrow">From the notebook</p>
+      <h1>{title}</h1>
+      <p class="article-description">{description}</p>
+      <div class="article-meta">
+        <span>{author}</span><span><FormattedDate date={pubDate} /></span><span
+          >{minutes} min read</span
+        >{
+          updatedDate && (
+            <span>
+              Updated <FormattedDate date={updatedDate} />
+            </span>
+          )
+        }
+      </div>
+    </header>
+    <div class="article-grid">
+      {
+        showOutline && (
+          <aside class="article-outline">
+            <div class="desktop-toc">
+              <>
+                <p class="eyebrow">On this page</p>
+                <TableOfContents headings={outline} />
+              </>
+            </div>
+            <details class="mobile-toc">
+              <>
+                <summary>
+                  On this page <span aria-hidden="true">+</span>
+                </summary>
+                <TableOfContents headings={outline} />
+              </>
+            </details>
+          </aside>
+        )
+      }
+      <article class="prose article-body" id="article-body"><slot /></article>
+    </div>
+  </div>
 </BasePage>
